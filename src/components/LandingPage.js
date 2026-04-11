@@ -214,7 +214,7 @@ export default function LandingPage() {
             <a href="#estimator" style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color="white"} onMouseOut={e => e.target.style.color="var(--text-muted)"}>Yield Terminal</a>
             <div style={{ display: "flex", gap: "1rem" }}>
               <a href="/login" className="btn btn-secondary" style={{ padding: "0.5rem 1.25rem", fontSize: "0.875rem" }}>Log in</a>
-              <a href="/register" className="btn btn-primary" style={{ padding: "0.5rem 1.25rem", fontSize: "0.875rem" }}>Deploy Capital</a>
+              <a href="/signup" className="btn btn-primary" style={{ padding: "0.5rem 1.25rem", fontSize: "0.875rem" }}>Deploy Capital</a>
             </div>
           </nav>
         </div>
