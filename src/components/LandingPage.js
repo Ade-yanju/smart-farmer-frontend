@@ -1,462 +1,586 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-/**
- * SMARTFARMER OS - VERSION 3.0 (AGGRESSIVE SILICON VALLEY UPGRADE)
- * Design System: Obsidian & Emerald High-Frequency
- */
+// --- Mock Sub-Pages for Navigation ---
+const AuthPage = ({ type, onBack }) => (
+  <div className="container" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div className="terminal-card" style={{ width: "100%", maxWidth: "450px" }}>
+      <h2 style={{ marginBottom: "0.5rem" }}>{type === "login" ? "Welcome back" : "Create account"}</h2>
+      <p style={{ marginBottom: "2rem" }}>{type === "login" ? "Access your TerraYield dashboard." : "Start deploying capital to real-world assets."}</p>
+      
+      <div className="input-group">
+        <label className="label">Email Address</label>
+        <input type="email" className="input" placeholder="investor@example.com" />
+      </div>
+      <div className="input-group" style={{ marginBottom: "2rem" }}>
+        <label className="label">Password</label>
+        <input type="password" className="input" placeholder="••••••••" />
+      </div>
+      
+      <button className="btn btn-primary" style={{ width: "100%", marginBottom: "1rem" }}>
+        {type === "login" ? "Authenticate" : "Initialize Account"}
+      </button>
+      <button className="btn btn-secondary" style={{ width: "100%" }} onClick={onBack}>
+        Return to Protocol
+      </button>
+    </div>
+  </div>
+);
 
-export default function LandingPage() {
-  /* ---------------- State & Logic ---------------- */
-  const [price, setPrice] = useState(2500000);
-  const [months, setMonths] = useState(12);
-  const [pct, setPct] = useState(24);
-  const [risk, setRisk] = useState("Alpha");
-  const [activeFaq, setActiveFaq] = useState(null);
-  const [footerOpen, setFooterOpen] = useState(false);
+// --- Main Application Component ---
+export default function TerraYieldApp() {
+  const [currentView, setCurrentView] = useState("home"); // home | login | register
 
-  const calc = useMemo(() => {
-    const p = Math.max(0, Number(price));
-    const m = Math.max(1, Number(months));
-    const pr = Math.max(0, Number(pct));
-    const roi = (pr / 100) * p;
-    return { 
-      p, m, pr, roi, 
-      total: p + roi, 
-      perMonth: (pr / m).toFixed(1),
-      daily: (roi / (m * 30)).toFixed(0)
-    };
-  }, [price, months, pct]);
-
-  const fmt = (n) => new Intl.NumberFormat("en-NG", {
-    style: "currency", currency: "NGN", minimumFractionDigits: 0
-  }).format(n);
-
-  const faqs = [
-    {
-      q: "How does the protocol generate non-correlated alpha?",
-      a: "By bypassing traditional agricultural middlemen. SmartFarmer routes institutional liquidity directly into heavily vetted, parametrically insured agricultural operations, capturing the full yield delta natively."
-    },
-    {
-      q: "Is my deployed capital locked?",
-      a: "Yes. Algorithmic farming cycles require hard commitments. Capital is deployed into real-world assets (RWAs) and cannot be liquidated until the harvest cycle matures. We do not do fractional reserves."
-    },
-    {
-      q: "What happens in a catastrophic crop failure event?",
-      a: "Every deployment is hedged via smart-contract parametric weather insurance and on-the-ground risk tranches. In a Level 5 failure event, principal is recovered via our multi-sig insurance pool."
+  // Smooth scroll handler for in-page anchors
+  const handleNavClick = (e, targetId) => {
+    e.preventDefault();
+    if (currentView !== "home") {
+      setCurrentView("home");
+      setTimeout(() => {
+        document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } else {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
     }
-  ];
-
-  const toggleFaq = (index) => {
-    setActiveFaq(activeFaq === index ? null : index);
   };
 
   return (
-    <div style={{ background: "#000", color: "#fff", minHeight: "100vh", fontFamily: "'Inter', sans-serif" }}>
-      <GlobalStyles />
+    <div className="sf-app">
+      <style>{`
+        :root {
+          /* Rebranded Dark Mode Palette - Cyan/Teal Base */
+          --brand-primary: #06B6D4; /* Modern Cyan */
+          --brand-primary-hover: #0891B2;
+          --brand-surface: #083344;
+          --bg-main: #020617;
+          --bg-secondary: #0F172A;
+          --border-light: rgba(255, 255, 255, 0.08);
+          --border-glow: rgba(6, 182, 212, 0.3);
+          
+          --text-main: #F8FAFC;
+          --text-muted: #94A3B8;
+          
+          --risk-low: #06B6D4;
+          --risk-med: #F59E0B;
+          --risk-high: #EF4444;
+
+          --shadow-glow: 0 0 30px rgba(6, 182, 212, 0.15);
+          --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 20px 40px -10px rgba(0,0,0,0.5);
+          
+          --radius-md: 12px;
+          --radius-lg: 24px;
+          --radius-full: 9999px;
+          
+          --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { 
+          background: var(--bg-main); 
+          color: var(--text-main); 
+          font-family: var(--font-sans); 
+          -webkit-font-smoothing: antialiased; 
+          overflow-x: hidden;
+        }
+
+        /* Typography */
+        h1 { font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 800; line-height: 1; letter-spacing: -0.04em; }
+        h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; }
+        h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: -0.01em; color: var(--text-main); }
+        p { color: var(--text-muted); line-height: 1.6; font-size: 1.125rem; }
+
+        /* Layout & Grid */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+        .section { padding: clamp(5rem, 10vw, 8rem) 0; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        
+        /* Bento Box Grid */
+        .bento-grid { 
+          display: grid; 
+          grid-template-columns: repeat(12, 1fr); 
+          gap: 1.5rem; 
+        }
+        .bento-item {
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-light);
+          border-radius: var(--radius-lg);
+          padding: 2rem;
+          position: relative;
+          overflow: hidden;
+          box-shadow: var(--shadow-card);
+          transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+        .bento-item:hover { border-color: var(--brand-primary); transform: translateY(-2px); }
+
+        /* Utilities */
+        .text-brand { color: var(--brand-primary); }
+        
+        .glass-nav {
+          background: rgba(2, 6, 23, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-bottom: 1px solid var(--border-light);
+        }
+
+        /* Buttons */
+        .btn {
+          display: inline-flex; align-items: center; justify-content: center;
+          padding: 0.875rem 1.75rem; border-radius: var(--radius-full);
+          font-weight: 600; font-size: 1rem; text-decoration: none;
+          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          cursor: pointer; border: none; outline: none; letter-spacing: -0.01em;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { 
+          background: var(--brand-primary); 
+          color: #000; 
+          box-shadow: var(--shadow-glow); 
+        }
+        .btn-primary:hover { 
+          background: var(--brand-primary-hover); 
+          box-shadow: 0 0 40px rgba(6, 182, 212, 0.4); 
+          color: white;
+        }
+        .btn-secondary { 
+          background: rgba(255, 255, 255, 0.05); 
+          color: var(--text-main); 
+          border: 1px solid var(--border-light); 
+          backdrop-filter: blur(10px);
+        }
+        .btn-secondary:hover { 
+          background: rgba(255, 255, 255, 0.1); 
+          border-color: rgba(255,255,255,0.2); 
+        }
+
+        /* Terminal/Cards */
+        .terminal-card {
+          background: var(--bg-secondary); 
+          border: 1px solid var(--border-light);
+          border-radius: var(--radius-lg); 
+          box-shadow: var(--shadow-card);
+          padding: 2.5rem;
+          position: relative;
+        }
+        .terminal-card::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+          background: linear-gradient(90deg, transparent, var(--brand-primary), transparent);
+          opacity: 0.5;
+        }
+
+        /* Forms */
+        .input-group { margin-bottom: 1.5rem; }
+        .label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;}
+        .input {
+          width: 100%; padding: 1rem 1.25rem; border-radius: var(--radius-md);
+          border: 1px solid var(--border-light); font-size: 1.125rem;
+          transition: all 0.2s ease; background: rgba(0,0,0,0.5); color: white;
+          font-family: 'JetBrains Mono', monospace, sans-serif;
+        }
+        .input:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 1px var(--brand-primary); }
+        
+        /* Badges */
+        .badge {
+          display: inline-flex; align-items: center; gap: 0.5rem;
+          padding: 0.5rem 1.25rem; border-radius: var(--radius-full);
+          background: rgba(6, 182, 212, 0.1); color: var(--brand-primary);
+          border: 1px solid rgba(6, 182, 212, 0.2);
+          font-weight: 500; font-size: 0.875rem; letter-spacing: 0.02em;
+        }
+
+        /* Responsive Overrides */
+        @media (max-width: 968px) {
+          .grid-2 { grid-template-columns: 1fr; gap: 3rem; }
+          .hero-cta { flex-direction: column; width: 100%; }
+          .hero-cta .btn { width: 100%; }
+          .desktop-only { display: none !important; }
+          .bento-grid { display: flex; flex-direction: column; }
+        }
+        @media (min-width: 969px) {
+          .mobile-only { display: none !important; }
+        }
+        
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
+          70% { box-shadow: 0 0 0 6px rgba(6, 182, 212, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+        }
+      `}</style>
+
+      {/* Top Banner */}
+      <div style={{ background: "var(--brand-primary)", color: "#000", fontSize: "0.875rem", fontWeight: 600, textAlign: "center", padding: "0.6rem 1rem", letterSpacing: "0.02em" }}>
+        TerraYield V2 is live. Institutional-grade ag-yield is now accessible to everyone. →
+      </div>
+
+      {/* Navigation */}
+      <header className="glass-nav" style={{ position: "sticky", top: 0, zIndex: 50 }}>
+        <div className="container" style={{ height: "72px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <a href="/" onClick={(e) => { e.preventDefault(); setCurrentView("home"); window.scrollTo(0,0); }} style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", color: "inherit" }}>
+            <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "var(--brand-primary)", display: "grid", placeItems: "center", color: "#000", fontWeight: 800 }}>
+              {/* Modern Leaf / Yield Icon */}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 22h20L12 2zm0 6v8"/></svg>
+            </div>
+            <span style={{ fontWeight: 700, fontSize: "1.25rem", letterSpacing: "-0.02em" }}>TerraYield</span>
+          </a>
+          <nav className="desktop-only" style={{ display: "flex", gap: "2.5rem", alignItems: "center" }}>
+            <a href="#how" onClick={(e) => handleNavClick(e, 'how')} style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500, transition: "color 0.2s", cursor: "pointer" }} onMouseOver={e => e.target.style.color="white"} onMouseOut={e => e.target.style.color="var(--text-muted)"}>Infrastructure</a>
+            <a href="#estimator" onClick={(e) => handleNavClick(e, 'estimator')} style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem", fontWeight: 500, transition: "color 0.2s", cursor: "pointer" }} onMouseOver={e => e.target.style.color="white"} onMouseOut={e => e.target.style.color="var(--text-muted)"}>Yield Terminal</a>
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <button onClick={() => setCurrentView("login")} className="btn btn-secondary" style={{ padding: "0.5rem 1.25rem", fontSize: "0.875rem" }}>Log in</button>
+              <button onClick={() => setCurrentView("register")} className="btn btn-primary" style={{ padding: "0.5rem 1.25rem", fontSize: "0.875rem" }}>Deploy Capital</button>
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Content Router */}
+      {currentView === "home" ? <LandingContent onNavigate={setCurrentView} /> : <AuthPage type={currentView} onBack={() => setCurrentView("home")} />}
       
-      {/* --- TOP HUD --- */}
-      <nav className="glass-nav" style={{ position: "fixed", top: 0, width: "100%", zIndex: 100, borderBottom: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
-        <div className="container" style={{ height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div className="logo-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            </div>
-            <span style={{ fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.03em" }}>SmartFarmer<span style={{color: "var(--brand)"}}>.os</span></span>
-          </div>
-          <div className="desktop-only" style={{ display: "flex", gap: "32px", fontSize: "0.85rem", fontWeight: 600, color: "var(--muted)" }}>
-            <a href="#" className="nav-link">Infrastructure</a>
-            <a href="#" className="nav-link">Liquidity</a>
-            <a href="#" className="nav-link">Audit Reports</a>
-          </div>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <button className="btn-ghost mobile-hide">Client Portal</button>
-            <button className="btn-primary-sm">Deploy Capital</button>
-          </div>
-        </div>
-      </nav>
-
-      {/* --- HERO SECTION --- */}
-      <section style={{ paddingTop: "160px", paddingBottom: "100px", position: "relative", overflow: "hidden" }}>
-        <div className="spotlight" />
-        <div className="grid-bg" />
-        <div className="container" style={{ textAlign: "center", position: "relative", zIndex: 10 }}>
-          <Reveal>
-            <div className="announcement-badge">
-              <span className="dot" /> $150M TVL Surpassed in Q3
-            </div>
-            <h1 className="hero-title">
-              Weaponize your liquidity.<br/>
-              <span className="gradient-text">Farm real-world alpha.</span>
-            </h1>
-            <p className="hero-subtitle">
-              The first decentralized operating system for aggressively scaling agricultural financing. <br className="desktop-only"/> 
-              Automated auditing. Parametric insurance. Ruthless capital efficiency.
-            </p>
-            <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "40px" }}>
-              <button className="btn-primary-lg">Execute Deployment</button>
-              <button className="btn-secondary-lg">Read the Docs</button>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* --- YIELD TERMINAL (THE "CORE") --- */}
-      <section className="container" style={{ paddingBottom: "120px", position: "relative", zIndex: 10 }}>
-        <Reveal delay={200}>
-          <div className="terminal-container">
-            <div className="terminal-header">
-              <div style={{ display: "flex", gap: "6px" }}>
-                <div className="dot-red" /> <div className="dot-amber" /> <div className="dot-green" />
-              </div>
-              <div className="terminal-title">LIQUIDITY_ROUTER_V3.exe</div>
-              <div style={{ fontSize: "10px", color: "var(--brand)", fontWeight: "bold" }}>SYSTEM_ONLINE</div>
-            </div>
-            
-            <div className="terminal-body">
-              {/* Controls */}
-              <div className="terminal-panel-left">
-                <div className="input-row">
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
-                    <label className="terminal-label">Deployment Capital</label>
-                    <span className="terminal-value">{fmt(price)}</span>
-                  </div>
-                  <input type="range" min="500000" max="50000000" step="100000" value={price} onChange={e => setPrice(e.target.value)} className="sf-slider" />
-                </div>
-
-                <div className="input-row">
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
-                    <label className="terminal-label">Lock-up Period</label>
-                    <span className="terminal-value">{months} Months</span>
-                  </div>
-                  <input type="range" min="6" max="36" step="1" value={months} onChange={e => setMonths(e.target.value)} className="sf-slider" />
-                </div>
-
-                <div className="input-row">
-                  <label className="terminal-label" style={{ marginBottom: "16px", display: "block" }}>Risk Matrix Tranche</label>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-                    {['Senior', 'Mezzanine', 'Alpha'].map(lvl => (
-                      <button 
-                        key={lvl} 
-                        onClick={() => {
-                            setRisk(lvl);
-                            setPct(lvl === 'Senior' ? 12 : lvl === 'Mezzanine' ? 18 : 28);
-                        }}
-                        className={`risk-btn ${risk === lvl ? 'active' : ''}`}
-                      >
-                        {lvl}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Visualization */}
-              <div className="terminal-panel-right">
-                <div style={{ marginBottom: "32px" }}>
-                  <div className="stat-label">PROJECTED MATURITY VALUE</div>
-                  <div className="stat-main">{fmt(calc.total)}</div>
-                </div>
-
-                <div className="grid-mini">
-                  <div className="mini-card">
-                    <span className="mini-label">Target APY</span>
-                    <span className="mini-value text-brand">{calc.pr}%</span>
-                  </div>
-                  <div className="mini-card">
-                    <span className="mini-label">Daily Accrual</span>
-                    <span className="mini-value">{fmt(calc.daily)}</span>
-                  </div>
-                </div>
-
-                <div className="timeline-container">
-                  <div className="timeline-header">
-                    <span>Initiation</span>
-                    <span>Harvest Event</span>
-                  </div>
-                  <div className="timeline-track">
-                    <div className="timeline-fill" style={{ width: `${(months / 36) * 100}%` }} />
-                  </div>
-                </div>
-
-                <button className="btn-deploy-action">
-                  Initialize Smart Contract
-                </button>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* --- TESTIMONIALS --- */}
-      <section style={{ paddingBottom: "120px", background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(16, 185, 129, 0.03) 100%)" }}>
+      {/* Footer */}
+      <footer style={{ background: "#000", borderTop: "1px solid var(--border-light)", padding: "4rem 0 2rem" }}>
         <div className="container">
-          <Reveal>
-            <h2 className="section-title">Verified Operators</h2>
-            <p className="section-subtitle">What the highest-performing asset managers are saying.</p>
-            <div className="testimonial-grid">
-              <div className="testimonial-card">
-                <p className="quote">"SmartFarmer completely eliminated our counterparty risk. The yield delta is unprecedented compared to traditional ag-tech debt."</p>
-                <div className="author">
-                  <div className="avatar" style={{background: "#333"}} />
-                  <div>
-                    <div className="author-name">E. Thorne</div>
-                    <div className="author-title">Partner, Apex Ventures</div>
-                  </div>
-                </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "3rem", marginBottom: "4rem" }}>
+            <div style={{ gridColumn: "1 / -1", maxWidth: "300px" }}>
+              <div style={{ fontWeight: 800, fontSize: "1.5rem", color: "white", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div style={{ width: "24px", height: "24px", borderRadius: "4px", background: "var(--brand-primary)"}}></div>
+                TerraYield
               </div>
-              <div className="testimonial-card">
-                <p className="quote">"The parametric insurance integration means we can deploy eight-figure tranches into emerging markets without sweating the weather data."</p>
-                <div className="author">
-                  <div className="avatar" style={{background: "#444"}} />
-                  <div>
-                    <div className="author-name">M. Chen</div>
-                    <div className="author-title">Head of Real Assets, Ouroboros Capital</div>
-                  </div>
-                </div>
+              <p style={{ fontSize: "0.875rem" }}>Bridging global liquidity with verified agricultural assets. Institutional-grade returns mapped to real-world production.</p>
+            </div>
+            <div>
+              <h4 style={{ color: "white", marginBottom: "1.25rem", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Protocol</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <a href="#how" onClick={(e) => handleNavClick(e, 'how')} style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem" }}>Infrastructure</a>
+                <a href="#estimator" onClick={(e) => handleNavClick(e, 'estimator')} style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem" }}>Yield Terminal</a>
+                <a href="#security" style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem" }}>Risk Framework</a>
               </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* --- FAQ SECTION --- */}
-      <section className="container" style={{ paddingBottom: "120px" }}>
-        <Reveal>
-          <h2 className="section-title">Protocol Inquiries</h2>
-          <div className="faq-container">
-            {faqs.map((faq, i) => (
-              <div key={i} className={`faq-item ${activeFaq === i ? 'active' : ''}`} onClick={() => toggleFaq(i)}>
-                <div className="faq-question">
-                  <span>{faq.q}</span>
-                  <span className="faq-icon">{activeFaq === i ? '-' : '+'}</span>
-                </div>
-                <div className="faq-answer" style={{ maxHeight: activeFaq === i ? '200px' : '0', opacity: activeFaq === i ? 1 : 0 }}>
-                  <p>{faq.a}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Reveal>
-      </section>
-
-      {/* --- INTERACTIVE FOOTER --- */}
-      <footer onClick={() => setFooterOpen(!footerOpen)} style={{ borderTop: "1px solid var(--border)", background: footerOpen ? "var(--surface)" : "transparent", transition: "0.4s", cursor: "pointer", overflow: "hidden" }}>
-        <div className="container" style={{ padding: "60px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", color: "var(--muted)", fontSize: "0.8rem", position: "relative" }}>
-          
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div style={{ color: "#fff", fontWeight: 700 }}>© 2026 SmartFarmer OS.</div>
-            <div>Built for institutional liquidity. Click to {footerOpen ? "close" : "decrypt origin"}.</div>
-          </div>
-          
-          <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-            <span className="status-indicator">All Nodes Synced</span>
-          </div>
-        </div>
-
-        {/* Hidden Details revealed on click */}
-        <div className={`footer-details ${footerOpen ? "open" : ""}`}>
-          <div className="container" style={{ padding: "0 24px 60px" }}>
-            <div className="footer-grid">
-              <div>
-                <h4 style={{ color: "#fff", marginBottom: "12px", fontFamily: "'JetBrains Mono', monospace" }}>// THE MANIFESTO</h4>
-                <p>We are ex-HFT quants, satellite engineers, and algorithmic game theorists. We looked at the $3 Trillion agricultural sector and saw unacceptable latency. SmartFarmer OS was built to fix this. Backed by $50M from tier-1 SV funds, we are turning dirt into deterministic yield.</p>
-              </div>
-              <div>
-                <h4 style={{ color: "#fff", marginBottom: "12px", fontFamily: "'JetBrains Mono', monospace" }}>// TELEMETRY</h4>
-                <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <li>Headquarters: San Francisco, CA</li>
-                  <li>Uptime: 99.999%</li>
-                  <li>Audited by: CertiK & Trail of Bits</li>
-                </ul>
+            <div>
+              <h4 style={{ color: "white", marginBottom: "1.25rem", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Entity</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <a href="#about" style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem" }}>Company</a>
+                <a href="#careers" style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem" }}>Careers</a>
+                <a href="#contact" style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "0.875rem" }}>Contact</a>
               </div>
             </div>
+          </div>
+          <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", fontSize: "0.875rem", color: "var(--text-muted)" }}>
+            <span>© {new Date().getFullYear()} TerraYield OS. All rights reserved.</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ width: "6px", height: "6px", background: "var(--brand-primary)", borderRadius: "50%" }}></span>
+              Systems Operational • Lagos
+            </span>
           </div>
         </div>
       </footer>
+
+      {/* Sticky Mobile CTA */}
+      <MobileCTA onNavigate={setCurrentView} currentView={currentView} />
     </div>
   );
 }
 
-/* ------------------- CSS-IN-JS FOR SPEED & SCOPE ------------------- */
-function GlobalStyles() {
+/* ---------------- Home Page Content ---------------- */
+function LandingContent({ onNavigate }) {
+  const [price, setPrice] = useState(500000);
+  const [months, setMonths] = useState(6);
+  const [pct, setPct] = useState(15);
+  const [risk, setRisk] = useState("Low"); // Low | Medium | High
+
+  const calc = useMemo(() => {
+    const p = Math.max(0, Number(price) || 0);
+    const m = Math.max(1, Number(months) || 1);
+    const pr = Math.max(0, Number(pct) || 0);
+    const roi = (pr / 100) * p;
+    const total = p + roi;
+    const perMonth = pr / m;
+    return { p, m, pr, roi, total, perMonth };
+  }, [price, months, pct]);
+
+  const fmt = (n) =>
+    new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(Number(n) || 0);
+
   return (
-    <style>{`
-      :root {
-        --brand: #10B981;
-        --brand-glow: rgba(16, 185, 129, 0.15);
-        --muted: #A1A1AA;
-        --border: rgba(255, 255, 255, 0.12);
-        --surface: #0C0C0E;
-      }
+    <>
+      {/* Hero Section */}
+      <section className="section" style={{ position: "relative", minHeight: "90vh", display: "flex", alignItems: "center" }}>
+        <div style={{ position: "absolute", top: "-20%", left: "-10%", width: "50vw", height: "50vw", background: "radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, rgba(0,0,0,0) 60%)", zIndex: -1, borderRadius: "50%" }} />
+        
+        <div className="container grid-2">
+          <Reveal>
+            <div style={{ maxWidth: "650px" }}>
+              <div className="badge" style={{ marginBottom: "2rem" }}>
+                <span style={{width: "8px", height: "8px", borderRadius: "50%", background: "var(--brand-primary)", boxShadow: "0 0 10px var(--brand-primary)"}}></span>
+                Protocol Live • 14.2% APY Average
+              </div>
+              <h1 style={{ marginBottom: "1.5rem" }}>
+                Finance the future of <br/>
+                <span className="text-brand">agricultural yields.</span>
+              </h1>
+              <p style={{ marginBottom: "3rem", fontSize: "1.25rem" }}>
+                Bypass intermediaries. TerraYield routes your capital directly to audited agricultural inputs, generating predictable, asset-backed returns powered by real-world crop cycles.
+              </p>
+              <div className="hero-cta" style={{ display: "flex", gap: "1rem" }}>
+                <button onClick={() => onNavigate("register")} className="btn btn-primary">Start Investing</button>
+                <a href="#estimator" onClick={(e) => { e.preventDefault(); document.getElementById('estimator').scrollIntoView({behavior: 'smooth'})}} className="btn btn-secondary">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" style={{marginRight: "0.5rem"}}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                  Run Simulations
+                </a>
+              </div>
+            </div>
+          </Reveal>
+          
+          <Reveal delay={150}>
+            <div style={{ position: "relative" }}>
+              <div style={{ borderRadius: "var(--radius-lg)", overflow: "hidden", border: "1px solid var(--border-light)", boxShadow: "var(--shadow-glow)", position: "relative" }}>
+                <img 
+                  src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=1000&auto=format&fit=crop" 
+                  alt="Agricultural Drone Technology" 
+                  style={{ width: "100%", height: "500px", objectFit: "cover", display: "block", filter: "brightness(0.7) contrast(1.1) hue-rotate(-15deg)" }} 
+                />
+                
+                <div style={{ 
+                  position: "absolute", bottom: "2rem", left: "2rem", right: "2rem", 
+                  background: "rgba(10, 10, 10, 0.8)", backdropFilter: "blur(20px)", 
+                  border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "1.5rem",
+                  boxShadow: "0 20px 40px rgba(0,0,0,0.5)"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Live Portfolio Value</div>
+                    <div style={{ color: "var(--brand-primary)", fontSize: "0.875rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                      14.2%
+                    </div>
+                  </div>
+                  <div style={{ fontSize: "2.5rem", fontWeight: 800, fontFamily: "'JetBrains Mono', monospace", color: "white" }}>
+                    ₦2,450,000<span style={{color: "var(--text-muted)"}}>.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { background: #000; overflow-x: hidden; }
-      .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-      
-      /* Typography */
-      .hero-title { font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 900; letter-spacing: -0.05em; line-height: 1.05; margin-bottom: 24px; }
-      .gradient-text { background: linear-gradient(135deg, #fff 0%, var(--brand) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-      .hero-subtitle { color: var(--muted); font-size: 1.25rem; line-height: 1.6; max-width: 650px; margin: 0 auto; font-weight: 400; }
-      .section-title { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 12px; }
-      .section-subtitle { color: var(--muted); font-size: 1.1rem; margin-bottom: 48px; }
+      {/* Infrastructure Section */}
+      <section id="how" style={{ borderTop: "1px solid var(--border-light)", background: "var(--bg-secondary)" }}>
+        <div className="container" style={{ padding: "6rem 1.5rem" }}>
+          <div style={{ marginBottom: "4rem" }}>
+            <h2 style={{ marginBottom: "1rem" }}>Institutional-grade infrastructure.</h2>
+            <p style={{ maxWidth: "600px" }}>We've engineered the entire stack to remove friction from agricultural financing, ensuring capital deployment is secure, transparent, and profitable.</p>
+          </div>
 
-      /* Components */
-      .announcement-badge {
-        display: inline-flex; align-items: center; gap: 8px; background: rgba(16,185,129,0.05);
-        border: 1px solid rgba(16,185,129,0.2); padding: 8px 16px; border-radius: 99px;
-        font-size: 0.8rem; font-weight: 700; color: var(--brand); margin-bottom: 32px; letter-spacing: 0.05em;
-        text-transform: uppercase;
-      }
-      .dot { width: 6px; height: 6px; background: var(--brand); border-radius: 50%; box-shadow: 0 0 12px var(--brand); }
+          <div className="bento-grid">
+            <Reveal delay={0} style={{ gridColumn: "span 8" }}>
+              <div className="bento-item" style={{ height: "100%", minHeight: "350px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                <img 
+                  src="https://images.unsplash.com/photo-1592982537447-6f2a6a0c5c83?q=80&w=1000&auto=format&fit=crop" 
+                  alt="Harvest" 
+                  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.4, zIndex: 0, filter: "hue-rotate(-15deg)" }} 
+                />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #0A0A0A 0%, transparent 100%)", zIndex: 1 }} />
+                <div style={{ position: "relative", zIndex: 2 }}>
+                  <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "var(--brand-primary)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                  </div>
+                  <h3 style={{ fontSize: "1.5rem" }}>Asset-Backed Security</h3>
+                  <p style={{ margin: 0 }}>Capital doesn't sit idle. Funds directly purchase audited, physical farm materials—seeds, fertilizers, and equipment—insured against comprehensive risks.</p>
+                </div>
+              </div>
+            </Reveal>
 
-      .spotlight {
-        position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
-        width: 150vw; height: 100vh;
-        background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, transparent 60%);
-        pointer-events: none; z-index: 0;
-      }
-      .grid-bg {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-        background-size: 40px 40px; pointer-events: none; z-index: 0;
-        mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-        -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-      }
+            <Reveal delay={100} style={{ gridColumn: "span 4" }}>
+              <div className="bento-item" style={{ height: "100%" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(255,255,255,0.1)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h3>Dynamic Cycles</h3>
+                <p style={{ fontSize: "1rem", margin: 0 }}>Hold for weeks or months. Yields are generated based on real-world crop maturity cycles, completely detached from crypto or stock market volatility.</p>
+              </div>
+            </Reveal>
 
-      /* Buttons */
-      .btn-primary-sm { background: #fff; color: #000; padding: 10px 20px; border-radius: 6px; font-weight: 700; border: none; cursor: pointer; transition: 0.2s; font-size: 0.85rem;}
-      .btn-primary-sm:hover { background: var(--brand); box-shadow: 0 0 15px var(--brand-glow); }
-      
-      .btn-primary-lg { background: #fff; color: #000; padding: 16px 32px; border-radius: 8px; font-weight: 800; border: none; cursor: pointer; transition: 0.2s; font-size: 1rem; }
-      .btn-primary-lg:hover { transform: translateY(-2px); background: var(--brand); box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3); }
-      .btn-secondary-lg { background: rgba(255,255,255,0.03); color: #fff; padding: 16px 32px; border-radius: 8px; font-weight: 700; border: 1px solid var(--border); cursor: pointer; font-size: 1rem; backdrop-filter: blur(10px); transition: 0.2s; }
-      .btn-secondary-lg:hover { background: rgba(255,255,255,0.08); }
-      .btn-ghost { background: transparent; border: none; color: #fff; font-weight: 600; cursor: pointer; }
+            <Reveal delay={200} style={{ gridColumn: "span 4" }}>
+              <div className="bento-item" style={{ height: "100%" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(255,255,255,0.1)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </div>
+                <h3>Algorithmic Risk Control</h3>
+                <p style={{ fontSize: "1rem", margin: 0 }}>Integrated KYC, parametric weather insurance, and real-time satellite monitoring protect downside exposure.</p>
+              </div>
+            </Reveal>
 
-      /* Terminal UI */
-      .terminal-container { 
-        background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-        overflow: hidden; box-shadow: 0 20px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05) inset;
-      }
-      .terminal-header { 
-        background: #000; padding: 12px 20px; border-bottom: 1px solid var(--border);
-        display: flex; justify-content: space-between; align-items: center;
-      }
-      .terminal-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
-      .terminal-body { display: grid; grid-template-columns: 1.2fr 1fr; }
-      
-      .terminal-panel-left { padding: 48px; border-right: 1px solid var(--border); }
-      .terminal-panel-right { padding: 48px; background: rgba(0,0,0,0.3); }
+            <Reveal delay={300} style={{ gridColumn: "span 8" }}>
+               <div className="bento-item" style={{ height: "100%", background: "linear-gradient(135deg, var(--brand-surface) 0%, var(--bg-secondary) 100%)", border: "1px solid rgba(6,182,212,0.2)" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "var(--brand-primary)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+                <h3 style={{ fontSize: "1.5rem" }}>Measurable Local Impact</h3>
+                <p style={{ margin: 0 }}>Every Naira deployed translates directly to boosted regional yields and increased income for vetted local farming cooperatives.</p>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
 
-      .terminal-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 700; }
-      .terminal-value { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: #fff; font-weight: 600; }
+      {/* Estimator Section */}
+      <section id="estimator" className="section" style={{ borderTop: "1px solid var(--border-light)" }}>
+        <div className="container grid-2">
+          <Reveal>
+            <div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", color: "var(--brand-primary)", fontSize: "0.875rem", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "1rem" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Yield Terminal
+              </div>
+              <h2 style={{ marginBottom: "1.5rem" }}>Simulate your deployment.</h2>
+              <p style={{ marginBottom: "3rem" }}>Configure your capital parameters. The algorithmic engine calculates your projected maturity payout instantly. Zero management fees.</p>
+              
+              <div className="terminal-card">
+                <div className="input-group">
+                  <label className="label">Principal Amount (NGN)</label>
+                  <div style={{ position: "relative" }}>
+                    <span style={{ position: "absolute", left: "1.25rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>₦</span>
+                    <input type="number" min={10000} value={price} onChange={(e) => setPrice(e.target.value)} className="input" style={{ paddingLeft: "2.5rem" }} placeholder="500000" />
+                  </div>
+                </div>
 
-      /* Sliders */
-      .sf-slider { 
-        width: 100%; height: 4px; background: #333; border-radius: 2px; -webkit-appearance: none; margin-bottom: 40px;
-      }
-      .sf-slider::-webkit-slider-thumb {
-        -webkit-appearance: none; width: 18px; height: 18px; background: #fff; border-radius: 50%; cursor: pointer;
-        box-shadow: 0 0 15px rgba(255,255,255,0.5); transition: 0.2s;
-      }
-      .sf-slider::-webkit-slider-thumb:hover { transform: scale(1.2); background: var(--brand); box-shadow: 0 0 20px var(--brand); }
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                  <div className="input-group">
+                    <label className="label">Cycle (Months)</label>
+                    <input type="number" min={1} value={months} onChange={(e) => setMonths(e.target.value)} className="input" placeholder="6" />
+                  </div>
+                  <div className="input-group">
+                    <label className="label">Target APY (%)</label>
+                    <input type="number" min={0} value={pct} onChange={(e) => setPct(e.target.value)} className="input" placeholder="15" />
+                  </div>
+                </div>
 
-      /* Risk Buttons */
-      .risk-btn {
-        background: transparent; border: 1px solid var(--border); color: var(--muted);
-        padding: 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.05em;
-      }
-      .risk-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
-      .risk-btn.active { background: var(--brand-glow); border-color: var(--brand); color: var(--brand); box-shadow: 0 0 20px rgba(16,185,129,0.1) inset; }
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="label">Risk Tranche</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+                    {["Low", "Medium", "High"].map((lvl) => {
+                      const isSelected = risk === lvl;
+                      const colorVar = `var(--risk-${lvl.substring(0,3).toLowerCase()})`;
+                      return (
+                        <button
+                          key={lvl}
+                          onClick={() => setRisk(lvl)}
+                          style={{
+                            padding: "0.875rem", borderRadius: "8px", fontWeight: 600, fontSize: "0.875rem",
+                            background: isSelected ? (lvl === 'Low' ? 'rgba(6,182,212,0.1)' : lvl === 'Medium' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)') : "rgba(255,255,255,0.05)",
+                            border: `1px solid ${isSelected ? colorVar : "var(--border-light)"}`,
+                            color: isSelected ? colorVar : "var(--text-muted)",
+                            cursor: "pointer", transition: "all 0.2s"
+                          }}
+                        >
+                          {lvl}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
 
-      /* Results */
-      .stat-label { font-size: 0.75rem; color: var(--brand); font-weight: 800; letter-spacing: 0.1em; margin-bottom: 8px; }
-      .stat-main { font-size: 3.5rem; font-weight: 900; letter-spacing: -0.04em; font-family: 'JetBrains Mono', monospace; line-height: 1; }
+          <Reveal delay={150}>
+            <div className="terminal-card" style={{ background: "#000", borderColor: "var(--border-light)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", borderBottom: "1px solid var(--border-light)", paddingBottom: "1rem" }}>
+                <div style={{ fontSize: "0.875rem", color: "var(--text-muted)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Projected Output</div>
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--brand-primary)", boxShadow: "0 0 10px var(--brand-primary)", animation: "pulse 2s infinite" }}></div>
+              </div>
 
-      .grid-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
-      .mini-card { background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
-      .mini-label { display: block; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.05em; }
-      .mini-value { font-weight: 800; font-size: 1.25rem; font-family: 'JetBrains Mono', monospace; }
-      .text-brand { color: var(--brand); }
+              <div style={{ marginBottom: "2.5rem" }}>
+                <div style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>Total Value at Maturity</div>
+                <div style={{ fontSize: "3.5rem", fontWeight: 800, lineHeight: 1, fontFamily: "'JetBrains Mono', monospace", color: "white" }}>
+                  {fmt(calc.total)}
+                </div>
+              </div>
 
-      .timeline-track { width: 100%; height: 6px; background: #222; border-radius: 3px; margin: 12px 0 32px; overflow: hidden; }
-      .timeline-fill { height: 100%; background: var(--brand); border-radius: 3px; box-shadow: 0 0 20px var(--brand); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-      .timeline-header { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2.5rem", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.875rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "1rem" }}>
+                  <span style={{ color: "var(--text-muted)" }}>Principal</span>
+                  <span>{fmt(calc.p)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed rgba(255,255,255,0.1)", paddingBottom: "1rem" }}>
+                  <span style={{ color: "var(--text-muted)" }}>Net Profit</span>
+                  <span style={{ color: "var(--brand-primary)" }}>+{fmt(calc.roi)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--text-muted)" }}>Monthly Velocity</span>
+                  <span>{calc.perMonth.toFixed(2)}% / mo</span>
+                </div>
+              </div>
 
-      .btn-deploy-action {
-        width: 100%; padding: 20px; background: var(--brand); color: #000; border: none;
-        border-radius: 8px; font-weight: 900; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: 0.2s;
-      }
-      .btn-deploy-action:hover { filter: brightness(1.2); box-shadow: 0 0 30px rgba(16,185,129,0.4); }
+              <div style={{ background: "rgba(255,255,255,0.03)", padding: "1rem", borderRadius: "8px", fontSize: "0.75rem", color: "var(--text-muted)", border: "1px solid var(--border-light)", marginBottom: "2rem" }}>
+                <span style={{ color: "white", fontWeight: 600 }}>SYSTEM NOTE:</span> APY reflects the full {calc.m}-month lockup. Risk tranche configures the smart contract insurance layer.
+              </div>
 
-      /* Testimonials */
-      .testimonial-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-      .testimonial-card { background: var(--surface); border: 1px solid var(--border); padding: 40px; border-radius: 12px; transition: 0.3s; }
-      .testimonial-card:hover { border-color: rgba(16, 185, 129, 0.3); transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-      .quote { font-size: 1.1rem; line-height: 1.6; font-style: italic; color: #fff; margin-bottom: 24px; font-weight: 500; }
-      .author { display: flex; gap: 16px; align-items: center; }
-      .avatar { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border); }
-      .author-name { font-weight: 700; font-size: 1rem; }
-      .author-title { color: var(--brand); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-
-      /* FAQ */
-      .faq-container { border-top: 1px solid var(--border); }
-      .faq-item { border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.3s; }
-      .faq-item:hover { background: rgba(255,255,255,0.02); }
-      .faq-question { padding: 32px 0; display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: 600; }
-      .faq-icon { font-size: 1.5rem; color: var(--brand); font-weight: 300; }
-      .faq-answer { overflow: hidden; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-      .faq-answer p { padding-bottom: 32px; color: var(--muted); line-height: 1.6; font-size: 1.05rem; }
-      .faq-item.active .faq-question { color: var(--brand); }
-
-      /* Footer Interaction */
-      .footer-details { max-height: 0; opacity: 0; transition: 0.5s ease; }
-      .footer-details.open { max-height: 300px; opacity: 1; }
-      .footer-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 60px; color: var(--muted); line-height: 1.6; }
-
-      .status-indicator { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-      .status-indicator::before { content: ""; width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: pulse 2s infinite; box-shadow: 0 0 10px var(--brand); }
-
-      @keyframes pulse {
-        0% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(1.2); }
-        100% { opacity: 1; transform: scale(1); }
-      }
-
-      @media (max-width: 768px) {
-        .terminal-body { grid-template-columns: 1fr; }
-        .terminal-panel-left { border-right: none; border-bottom: 1px solid var(--border); padding: 24px; }
-        .terminal-panel-right { padding: 24px; }
-        .testimonial-grid { grid-template-columns: 1fr; }
-        .footer-grid { grid-template-columns: 1fr; gap: 30px; }
-        .mobile-hide { display: none; }
-        .hero-title { font-size: 2.5rem; }
-        .stat-main { font-size: 2.5rem; }
-      }
-    `}</style>
+              <button onClick={() => onNavigate("register")} className="btn btn-primary" style={{ width: "100%", padding: "1.25rem", fontSize: "1.125rem" }}>
+                Initialize Deployment
+              </button>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+    </>
   );
 }
 
-/* ------------------- MOTION WRAPPER ------------------- */
-function Reveal({ children, delay = 0 }) {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef(null);
-
+/* ---------------- Mobile Sticky CTA Component ---------------- */
+function MobileCTA({ onNavigate, currentView }) {
+  const [showSticky, setShowSticky] = useState(false);
+  
   useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setVisible(true);
-    }, { threshold: 0.1 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    const onScroll = () => setShowSticky(window.scrollY > 300);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  if (currentView !== "home") return null;
+
   return (
-    <div ref={ref} style={{
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(40px)",
-      transition: `all 1s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`
+    <div className={`mobile-only ${showSticky ? "visible" : ""}`} style={{
+      position: "fixed", bottom: 0, left: 0, right: 0, padding: "1rem",
+      background: "rgba(10, 10, 10, 0.9)", backdropFilter: "blur(12px)", borderTop: "1px solid var(--border-light)",
+      transform: showSticky ? "translateY(0)" : "translateY(100%)", transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)", zIndex: 100
     }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+        <button onClick={() => onNavigate("login")} className="btn btn-secondary" style={{ padding: "0.75rem" }}>Log in</button>
+        <button onClick={() => onNavigate("register")} className="btn btn-primary" style={{ padding: "0.75rem" }}>Deploy</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Animation Helper ---------------- */
+function Reveal({ children, delay = 0, style = {} }) {
+  const ref = useRef(null);
+  const [show, setShow] = useState(false);
+  
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setShow(true); },
+      { threshold: 0.1 }
+    );
+    if (ref.current) io.observe(ref.current);
+    return () => io.disconnect();
+  }, []);
+  
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: show ? 1 : 0,
+        transform: show ? "translateY(0)" : "translateY(24px)",
+        transition: `opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+        willChange: "opacity, transform",
+        ...style
+      }}
+    >
       {children}
     </div>
   );
