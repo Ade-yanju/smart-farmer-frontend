@@ -1,68 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export default function LandingPage() {
-  const BRAND = {
-    g: "#0B5D3B", // primary green
-    g2: "#094931",
-    mint: "#E9F7F1",
-    mint2: "#F5FBF8",
-    text: "#0d1b16",
-    muted: "#5B6B66",
-    line: "#E6EEE9",
-    white: "#ffffff",
-    shadow: "0 12px 40px rgba(11,93,59,.16)",
-  };
-
-  /* ---------------- Assets (public/assets/smartfarmer/*) ---------------- */
-  const ASSET = {
-    logo: "/assets/smartfarmer/logo-light-theme.png",
-    hero: "/assets/smartfarmer/hero.jpg",
-    how: "/assets/smartfarmer/how.jpg",
-    t1: "/assets/smartfarmer/tile-1.jpg",
-    t2: "/assets/smartfarmer/tile-2.jpg",
-    t3: "/assets/smartfarmer/tile-3.jpg",
-  };
-
-  /* ---------------- Animation Helpers ---------------- */
-  const Reveal = ({ children, delay = 0, y = 18 }) => {
-    const ref = useRef(null);
-    const [show, setShow] = useState(false);
-    useEffect(() => {
-      const io = new IntersectionObserver(
-        (entries) => entries.forEach((e) => e.isIntersecting && setShow(true)),
-        { threshold: 0.14 }
-      );
-      if (ref.current) io.observe(ref.current);
-      return () => io.disconnect();
-    }, []);
-    return (
-      <div
-        ref={ref}
-        style={{
-          transform: show ? "translateY(0)" : `translateY(${y}px)`,
-          opacity: show ? 1 : 0,
-          transition: `all 650ms cubic-bezier(.2,.7,.2,1) ${delay}ms`,
-          willChange: "transform, opacity",
-        }}
-      >
-        {children}
-      </div>
-    );
-  };
-
-  // subtle parallax on hero media
-  const heroImg = useRef(null);
-  useEffect(() => {
-    const onScroll = () => {
-      if (!heroImg.current) return;
-      const y = window.scrollY * 0.16;
-      heroImg.current.style.transform = `scale(1.06) translateY(${y * 0.18}px)`;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  /* ---------------- Estimator (Price, Months, %, Risk) ---------------- */
+  /* ---------------- Estimator Logic ---------------- */
   const [price, setPrice] = useState(500000);
   const [months, setMonths] = useState(6);
   const [pct, setPct] = useState(15);
@@ -79,638 +18,221 @@ export default function LandingPage() {
   }, [price, months, pct]);
 
   const fmt = (n) =>
-    "₦" +
-    (Number(n) || 0).toLocaleString("en-NG", { maximumFractionDigits: 2 });
+    new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(Number(n) || 0);
 
-  const riskColor =
-    risk === "Low" ? "#0B5D3B" : risk === "Medium" ? "#E0A100" : "#D34040";
-
-  /* ---------------- Styles ---------------- */
-  const container = { maxWidth: 1200, margin: "0 auto", padding: "0 22px" };
-  const section = (py = 64) => ({ padding: `${py}px 0` });
-  const btn = {
-    background: BRAND.g,
-    color: BRAND.white,
-    padding: "12px 18px",
-    borderRadius: 12,
-    border: "none",
-    fontWeight: 800,
-    textDecoration: "none",
-    display: "inline-block",
-    transition: "transform .22s ease, box-shadow .22s ease, filter .22s ease",
-    boxShadow: BRAND.shadow,
-  };
-  const btnGhost = {
-    background: BRAND.mint,
-    color: BRAND.g,
-    padding: "12px 18px",
-    borderRadius: 12,
-    border: `1px solid ${BRAND.line}`,
-    fontWeight: 800,
-    textDecoration: "none",
-    display: "inline-block",
-  };
-  const card = {
-    background: BRAND.white,
-    border: `1px solid ${BRAND.line}`,
-    borderRadius: 18,
-    boxShadow: "0 10px 34px rgba(13,27,22,.10)",
-    transition: "transform .22s ease, box-shadow .22s ease",
-  };
-  const float = {
-    transform: "translateY(-6px)",
-    boxShadow: "0 18px 42px rgba(13,27,22,.16)",
-  };
-  const input = {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: 12,
-    border: `1px solid ${BRAND.line}`,
-    outline: "none",
-    fontSize: 14,
-    boxSizing: "border-box",
-    background: BRAND.white,
-  };
-  const label = {
-    display: "block",
-    fontSize: 12,
-    fontWeight: 900,
-    color: BRAND.muted,
-    marginTop: 10,
-    marginBottom: 6,
-  };
-
-  // sticky mobile CTA visibility
+  // Sticky mobile CTA visibility
   const [showSticky, setShowSticky] = useState(false);
   useEffect(() => {
-    const onScroll = () => setShowSticky(window.scrollY > 480);
+    const onScroll = () => setShowSticky(window.scrollY > 300);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <div
-      style={{
-        fontFamily:
-          "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-        color: BRAND.text,
-        background: "#FBFFFD",
-      }}
-    >
+    <div className="sf-app">
       <style>{`
-        @media (max-width: 980px) {
-          .grid2 { grid-template-columns: 1fr !important; }
-          .hero-title { font-size: 36px !important; }
-          .hero-cta { flex-direction: column !important; align-items: flex-start !important; }
-          .hide-sm { display:none !important; }
+        :root {
+          --brand-primary: #0B5D3B;
+          --brand-primary-hover: #094931;
+          --brand-surface: #E9F7F1;
+          --brand-surface-light: #F5FBF8;
+          --text-main: #0B120F;
+          --text-muted: #52605A;
+          --border-light: #E2E8F0;
+          --bg-main: #FAFCFB;
+          --white: #FFFFFF;
+          
+          --risk-low: #0B5D3B;
+          --risk-med: #D97706;
+          --risk-high: #DC2626;
+
+          --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+          --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+          --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+          --shadow-glow: 0 12px 40px rgba(11,93,59,0.16);
+          
+          --radius-md: 12px;
+          --radius-lg: 20px;
+          --radius-full: 9999px;
+          
+          --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        .blur-nav { backdrop-filter: saturate(140%) blur(8px); }
-        .link { position:relative; text-decoration:none; }
-        .link:after { content:""; position:absolute; left:0; right:100%; bottom:-3px; height:2px; background:${BRAND.g}; transition:right .25s ease; }
-        .link:hover:after { right:0; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+        /* Typography */
+        h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
+        h2 { font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+        h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+        p { color: var(--text-muted); line-height: 1.6; font-size: 1.125rem; }
+
+        /* Layout & Grid */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+        .section { padding: clamp(4rem, 8vw, 6rem) 0; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+
+        /* Utilities */
+        .text-gradient {
+          background: linear-gradient(135deg, var(--brand-primary), #10B981);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .glass-nav {
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Buttons */
+        .btn {
+          display: inline-flex; align-items: center; justify-content: center;
+          padding: 0.875rem 1.5rem; border-radius: var(--radius-full);
+          font-weight: 600; font-size: 1rem; text-decoration: none;
+          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          cursor: pointer; border: none; outline: none;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--brand-primary); color: var(--white); box-shadow: var(--shadow-glow); }
+        .btn-primary:hover { background: var(--brand-primary-hover); transform: translateY(-2px); box-shadow: 0 16px 32px rgba(11,93,59,0.25); }
+        .btn-secondary { background: var(--white); color: var(--brand-primary); border: 1px solid var(--border-light); }
+        .btn-secondary:hover { background: var(--brand-surface-light); border-color: var(--brand-primary); }
+
+        /* Cards */
+        .card {
+          background: var(--white); border: 1px solid var(--border-light);
+          border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          padding: 2rem;
+        }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+        /* Forms */
+        .input-group { margin-bottom: 1.25rem; }
+        .label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; }
+        .input {
+          width: 100%; padding: 0.875rem 1rem; border-radius: var(--radius-md);
+          border: 1px solid var(--border-light); font-size: 1rem;
+          transition: all 0.2s ease; background: var(--white);
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .input:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(11,93,59,0.1); }
+        
+        /* Badges */
+        .badge {
+          display: inline-flex; align-items: center; gap: 0.5rem;
+          padding: 0.5rem 1rem; border-radius: var(--radius-full);
+          background: var(--brand-surface); color: var(--brand-primary);
+          font-weight: 600; font-size: 0.875rem;
+        }
+
+        /* Responsive Overrides */
+        @media (max-width: 968px) {
+          .grid-2 { grid-template-columns: 1fr; gap: 2rem; }
+          .hero-cta { flex-direction: column; width: 100%; }
+          .hero-cta .btn { width: 100%; }
+          .desktop-only { display: none !important; }
+        }
+        @media (min-width: 969px) {
+          .mobile-only { display: none !important; }
+        }
       `}</style>
 
-      {/* Top strip */}
-      <div
-        style={{
-          background: BRAND.g2,
-          color: "#cfe9e1",
-          fontSize: 12,
-          textAlign: "center",
-          padding: "6px 10px",
-        }}
-      >
-        Input‑backed yield for everyone. smartfarmer.ng
+      {/* Top Banner */}
+      <div style={{ background: "var(--brand-primary-hover)", color: "#A7F3D0", fontSize: "0.875rem", fontWeight: 500, textAlign: "center", padding: "0.5rem 1rem" }}>
+        Input-backed yield for everyone. <b>smartfarmer.ng</b>
       </div>
 
-      {/* NAV */}
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          background: "rgba(255,255,255,.86)",
-          borderBottom: `1px solid ${BRAND.line}`,
-        }}
-        className="blur-nav"
-      >
-        <div
-          style={{
-            ...container,
-            height: 66,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <a
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: BRAND.g,
-                display: "grid",
-                placeItems: "center",
-                boxShadow: BRAND.shadow,
-              }}
-            >
-              <img
-                src={ASSET.logo}
-                alt="Smart Farmer"
-                style={{ width: 22, height: 22 }}
-              />
+      {/* Navigation */}
+      <header className="glass-nav" style={{ position: "sticky", top: 0, zIndex: 50 }}>
+        <div className="container" style={{ height: "72px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", color: "inherit" }}>
+            <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "var(--brand-primary)", display: "grid", placeItems: "center", color: "white", fontWeight: 800 }}>
+              SF
             </div>
-            <div style={{ fontWeight: 900, letterSpacing: 0.3 }}>
-              SmartFarmer
-            </div>
+            <span style={{ fontWeight: 800, fontSize: "1.25rem", letterSpacing: "-0.02em" }}>SmartFarmer</span>
           </a>
-          <nav style={{ display: "flex", gap: 16, alignItems: "center" }}>
-            <a
-              className="link"
-              href="#how"
-              style={{ color: BRAND.muted, fontWeight: 700 }}
-            >
-              How it Works
-            </a>
-            <a
-              className="link"
-              href="#estimator"
-              style={{ color: BRAND.muted, fontWeight: 700 }}
-            >
-              Estimator
-            </a>
-            <a
-              className="link"
-              href="#faq"
-              style={{ color: BRAND.muted, fontWeight: 700 }}
-            >
-              FAQ
-            </a>
-            <a href="/login" style={btnGhost}>
-              Login
-            </a>
-            <a
-              href="/register"
-              style={btn}
-              onMouseEnter={(e) =>
-                Object.assign(e.currentTarget.style, {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 16px 30px rgba(11,93,59,.25)",
-                  filter: "brightness(1.02)",
-                })
-              }
-              onMouseLeave={(e) =>
-                Object.assign(e.currentTarget.style, {
-                  transform: "",
-                  boxShadow: BRAND.shadow,
-                  filter: "",
-                })
-              }
-            >
-              Create Account
-            </a>
+          <nav className="desktop-only" style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
+            <a href="#how" style={{ color: "var(--text-muted)", textDecoration: "none", fontWeight: 500 }}>How it Works</a>
+            <a href="#estimator" style={{ color: "var(--text-muted)", textDecoration: "none", fontWeight: 500 }}>Estimator</a>
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <a href="/login" className="btn btn-secondary" style={{ padding: "0.5rem 1rem" }}>Log in</a>
+              <a href="/register" className="btn btn-primary" style={{ padding: "0.5rem 1rem" }}>Sign up</a>
+            </div>
           </nav>
         </div>
       </header>
 
-      {/* HERO */}
-      <section
-        style={{
-          position: "relative",
-          minHeight: 520,
-          display: "grid",
-          alignItems: "center",
-          overflow: "hidden",
-        }}
-      >
-        <img
-          ref={heroImg}
-          src={ASSET.hero}
-          alt="Smart Farmer hero"
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "115%",
-            objectFit: "cover",
-            filter: "saturate(105%) brightness(.96)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.96))",
-          }}
-        />
-        <div style={{ ...container, position: "relative" }}>
+      {/* Hero Section */}
+      <section className="section" style={{ position: "relative", overflow: "hidden", minHeight: "80vh", display: "flex", alignItems: "center" }}>
+        {/* Subtle background glow */}
+        <div style={{ position: "absolute", top: "-10%", right: "-5%", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(17,153,98,0.08) 0%, rgba(255,255,255,0) 70%)", zIndex: -1, borderRadius: "50%" }} />
+        
+        <div className="container grid-2">
           <Reveal>
-            <div style={{ maxWidth: 820 }}>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  background: BRAND.mint,
-                  color: BRAND.g,
-                  padding: "8px 12px",
-                  borderRadius: 999,
-                  fontWeight: 900,
-                }}
-              >
-                <span>Invest by Units</span>
+            <div style={{ maxWidth: "600px" }}>
+              <div className="badge" style={{ marginBottom: "1.5rem" }}>
+                <span>✨ Invest by Units</span>
                 <span aria-hidden>•</span>
                 <span>Weeks or Months</span>
               </div>
-              <h1
-                className="hero-title"
-                style={{ fontSize: 46, lineHeight: 1.08, margin: "12px 0 8px" }}
-              >
-                Finance real farm inputs.{" "}
-                <span style={{ color: BRAND.g }}>
-                  Earn predictable returns.
-                </span>
+              <h1 style={{ marginBottom: "1.5rem" }}>
+                Finance real farm inputs. <br />
+                <span className="text-gradient">Earn predictable returns.</span>
               </h1>
-              <p style={{ maxWidth: 560, color: BRAND.muted }}>
-                Choose your amount, risk level, holding months and expected %
-                return. See your projected ROI instantly—then continue on Smart
-                Farmer.
+              <p style={{ marginBottom: "2.5rem", fontSize: "1.25rem" }}>
+                Choose your amount, risk level, holding period, and expected return. See your projected ROI instantly—then deploy capital with confidence.
               </p>
-              <div
-                className="hero-cta"
-                style={{ display: "flex", gap: 12, flexWrap: "wrap" }}
-              >
-                <a href="#estimator" style={btn}>
-                  Try the Estimator
-                </a>
-                <a href="/register" style={btnGhost}>
-                  Create Account
-                </a>
-                <a
-                  href="/login"
-                  style={{ ...btnGhost, background: BRAND.white }}
-                >
-                  Login
-                </a>
+              <div className="hero-cta" style={{ display: "flex", gap: "1rem" }}>
+                <a href="#estimator" className="btn btn-primary">Try the Estimator</a>
+                <a href="/register" className="btn btn-secondary">Create Account</a>
+              </div>
+            </div>
+          </Reveal>
+          
+          {/* Hero Visual / Mockup */}
+          <Reveal delay={150}>
+            <div style={{ position: "relative", padding: "1rem" }}>
+              <div className="card" style={{ padding: 0, overflow: "hidden", border: "1px solid rgba(11,93,59,0.1)", boxShadow: "0 25px 50px -12px rgba(11,93,59,0.15)" }}>
+                <div style={{ background: "var(--brand-surface-light)", padding: "1.5rem", borderBottom: "1px solid var(--border-light)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--text-muted)", fontWeight: 600 }}>Active Portfolio</div>
+                    <div style={{ fontSize: "2rem", fontWeight: 800, color: "var(--brand-primary)" }}>₦2,450,000</div>
+                  </div>
+                  <div style={{ background: "#D1FAE5", color: "#065F46", padding: "0.25rem 0.75rem", borderRadius: "99px", fontWeight: 700, fontSize: "0.875rem" }}>+14.2%</div>
+                </div>
+                <img src="/api/placeholder/600/400" alt="Dashboard Preview" style={{ width: "100%", height: "auto", display: "block", objectFit: "cover", backgroundColor: "#E2E8F0" }} />
               </div>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* VALUE STRIP */}
-      <section
-        style={{
-          ...section(32),
-          background: BRAND.mint2,
-          borderTop: `1px solid ${BRAND.line}`,
-          borderBottom: `1px solid ${BRAND.line}`,
-        }}
-      >
-        <div
-          style={{
-            ...container,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px,1fr))",
-            gap: 16,
-          }}
-        >
-          {[
-            {
-              i: "📦",
-              t: "Asset‑backed",
-              d: "Funds buy audited farm materials.",
-            },
-            {
-              i: "⏳",
-              t: "Transparent cycles",
-              d: "Hold for weeks or months.",
-            },
-            {
-              i: "🛡️",
-              t: "Risk controls",
-              d: "Insurance, KYC, satellite checks.",
-            },
-            { i: "🌱", t: "Impact", d: "Boost yields and farmer income." },
-          ].map((x, i) => (
-            <Reveal key={x.t} delay={i * 90}>
-              <div
-                style={{ ...card, padding: 18, textAlign: "center" }}
-                onMouseEnter={(e) =>
-                  Object.assign(e.currentTarget.style, float)
-                }
-                onMouseLeave={(e) =>
-                  Object.assign(e.currentTarget.style, {
-                    transform: "",
-                    boxShadow: "0 10px 34px rgba(13,27,22,.10)",
-                  })
-                }
-              >
-                <div style={{ fontSize: 26 }}>{x.i}</div>
-                <div style={{ fontWeight: 900, marginTop: 6 }}>{x.t}</div>
-                <div style={{ color: BRAND.muted, fontSize: 14 }}>{x.d}</div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="how" style={section(60)}>
-        <div
-          className="grid2"
-          style={{
-            ...container,
-            display: "grid",
-            gap: 20,
-            gridTemplateColumns: "1.15fr 1fr",
-          }}
-        >
-          <Reveal>
-            <div style={{ ...card, padding: 22 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    background: BRAND.g,
-                    color: "#fff",
-                    display: "grid",
-                    placeItems: "center",
-                    fontWeight: 900,
-                  }}
-                >
-                  SF
-                </div>
-                <h3 style={{ margin: 0 }}>How SmartFarmer Works</h3>
-              </div>
-              <ul
-                style={{
-                  marginTop: 8,
-                  paddingLeft: 18,
-                  color: BRAND.muted,
-                  lineHeight: 1.7,
-                }}
-              >
-                <li>
-                  Set your <b>Price</b>, <b>Months</b>, and expected{" "}
-                  <b>% Return</b>.
-                </li>
-                <li>
-                  Pick a <b>Risk Level</b> matching your preference.
-                </li>
-                <li>
-                  Funds are released as verified <b>inputs</b> to vetted
-                  farmers.
-                </li>
-                <li>
-                  Track progress in the app; at maturity, receive principal +
-                  ROI.
-                </li>
-              </ul>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <a href="/login" style={btnGhost}>
-                  Open the App
-                </a>
-                <a href="/register" style={btn}>
-                  Create Account
-                </a>
-              </div>
-            </div>
-          </Reveal>
-          <Reveal delay={120}>
-            <div style={{ ...card, overflow: "hidden" }}>
-              <img
-                src={ASSET.how}
-                alt="Field"
-                style={{ width: "100%", height: 320, objectFit: "cover" }}
-              />
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ESTIMATOR */}
-      <section id="estimator" style={section(52)}>
-        <div
-          className="grid2"
-          style={{
-            ...container,
-            display: "grid",
-            gap: 20,
-            gridTemplateColumns: "1fr 1fr",
-          }}
-        >
-          {/* Form */}
-          <Reveal>
-            <div style={{ ...card, padding: 18 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    background: BRAND.g,
-                    color: "#fff",
-                    display: "grid",
-                    placeItems: "center",
-                    fontWeight: 900,
-                  }}
-                >
-                  ₦
-                </div>
-                <h3 style={{ margin: 0 }}>Quick Return Estimator</h3>
-              </div>
-
-              <label style={label}>Price (₦)</label>
-              <input
-                type="number"
-                min={1}
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                style={input}
-                placeholder="e.g., 500000"
-              />
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 12,
-                }}
-              >
-                <div>
-                  <label style={label}>Months</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={months}
-                    onChange={(e) => setMonths(e.target.value)}
-                    style={input}
-                    placeholder="e.g., 6"
-                  />
-                </div>
-                <div>
-                  <label style={label}>Percentage Return (%)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={pct}
-                    onChange={(e) => setPct(e.target.value)}
-                    style={input}
-                    placeholder="e.g., 15"
-                  />
-                </div>
-              </div>
-
-              <label style={label}>Risk Level</label>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {["Low", "Medium", "High"].map((lvl) => (
-                  <button
-                    key={lvl}
-                    onClick={() => setRisk(lvl)}
-                    style={{
-                      background: lvl === risk ? BRAND.white : BRAND.mint,
-                      color: BRAND.g,
-                      border: `1px solid ${
-                        lvl === risk ? riskColor : BRAND.line
-                      }`,
-                      borderRadius: 12,
-                      padding: "10px 12px",
-                      fontWeight: 900,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {lvl}
-                  </button>
-                ))}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  marginTop: 12,
-                }}
-              >
-                <a href="/register" style={btn}>
-                  Create Account
-                </a>
-                <a
-                  href="/login"
-                  style={{ ...btnGhost, background: BRAND.white }}
-                >
-                  Login
-                </a>
-              </div>
-            </div>
-          </Reveal>
-
-          {/* Results */}
-          <Reveal delay={120}>
-            <div style={{ ...card, padding: 18 }}>
-              <h3 style={{ marginTop: 0 }}>Your Projection</h3>
-              <KV k="Principal" v={fmt(calc.p)} />
-              <KV
-                k="Projected ROI"
-                v={`${fmt(calc.roi)}  (${calc.perMonth.toFixed(2)}% / mo)`}
-              />
-              <KV k="Total at Maturity" v={fmt(calc.total)} />
-              <KV k="Duration" v={`${calc.m} month${calc.m > 1 ? "s" : ""}`} />
-
-              <div
-                style={{
-                  marginTop: 10,
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  background: BRAND.mint,
-                  border: `1px solid ${BRAND.line}`,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontWeight: 800,
-                  color: BRAND.g,
-                }}
-              >
-                <span
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    background: riskColor,
-                  }}
-                />
-                {risk} Risk Preference
-              </div>
-
-              <div
-                style={{
-                  marginTop: 12,
-                  background: BRAND.mint2,
-                  border: `1px solid ${BRAND.line}`,
-                  borderRadius: 12,
-                  padding: 12,
-                  color: BRAND.muted,
-                }}
-              >
-                <b>Notes</b>
-                <ul style={{ margin: 6, paddingLeft: 18 }}>
-                  <li>
-                    Percentage is for the <b>whole period</b>, not per month.
-                  </li>
-                  <li>
-                    Risk affects selection & coverage, not the math above.
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section style={{ ...section(36), background: "#F3F5F4" }}>
-        <div style={{ ...container }}>
-          <h3 style={{ textAlign: "center", marginTop: 0 }}>What People Say</h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px,1fr))",
-              gap: 16,
-              marginTop: 12,
-            }}
-          >
+      {/* Value Proposition Strip */}
+      <section style={{ borderTop: "1px solid var(--border-light)", borderBottom: "1px solid var(--border-light)", background: "var(--white)" }}>
+        <div className="container" style={{ padding: "4rem 1.5rem" }}>
+          <div className="grid-4">
             {[
-              {
-                q: "Unit‑based funding is so clear. I know exactly what my money buys.",
-                n: "Adewale O.",
-              },
-              {
-                q: "Returns matched the stated cycle. Simple and fair.",
-                n: "Mary K.",
-              },
-              {
-                q: "Love the transparency and the farmer impact.",
-                n: "Luis F.",
-              },
-            ].map((t, i) => (
-              <Reveal key={i} delay={i * 90}>
-                <div style={{ ...card, padding: 16 }}>
-                  <div style={{ fontStyle: "italic" }}>&quot;{t.q}&quot;</div>
-                  <div style={{ marginTop: 8, fontWeight: 900 }}>{t.n}</div>
+              { i: <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>, t: "Asset-backed", d: "Funds directly purchase audited farm materials." },
+              { i: <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>, t: "Flexible Cycles", d: "Hold for weeks or months based on crop realities." },
+              { i: <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>, t: "Risk Controls", d: "Insurance, KYC, and satellite monitoring built-in." },
+              { i: <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>, t: "Real Impact", d: "Boost regional yields and local farmer income." },
+            ].map((x, i) => (
+              <Reveal key={x.t} delay={i * 100}>
+                <div style={{ padding: "1rem" }}>
+                  <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "var(--brand-surface)", color: "var(--brand-primary)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                    {x.i}
+                  </div>
+                  <h3>{x.t}</h3>
+                  <p style={{ fontSize: "1rem", margin: 0 }}>{x.d}</p>
                 </div>
               </Reveal>
             ))}
@@ -718,155 +240,177 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" style={section(30)}>
-        <div style={{ ...container }}>
-          <h3 style={{ textAlign: "center", marginTop: 0 }}>
-            Frequently Asked
-          </h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 16,
-              marginTop: 10,
-            }}
-          >
-            <div style={{ ...card, padding: 16 }}>
-              <b>Is my money buying real assets?</b>
-              <div style={{ color: BRAND.muted, marginTop: 6 }}>
-                Yes. Funds are disbursed as verified agricultural inputs to
-                vetted farmers and cooperatives.
+      {/* Estimator Section (Fintech Grade) */}
+      <section id="estimator" className="section">
+        <div className="container grid-2">
+          {/* Form Side */}
+          <Reveal>
+            <div>
+              <h2 style={{ marginBottom: "1rem" }}>Calculate your yield</h2>
+              <p style={{ marginBottom: "2.5rem" }}>Adjust the parameters below to see your projected return at maturity. No hidden fees.</p>
+              
+              <div className="card">
+                <div className="input-group">
+                  <label className="label">Principal Amount (₦)</label>
+                  <input type="number" min={10000} value={price} onChange={(e) => setPrice(e.target.value)} className="input" placeholder="e.g., 500000" />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                  <div className="input-group">
+                    <label className="label">Duration (Months)</label>
+                    <input type="number" min={1} value={months} onChange={(e) => setMonths(e.target.value)} className="input" placeholder="e.g., 6" />
+                  </div>
+                  <div className="input-group">
+                    <label className="label">Expected Return (%)</label>
+                    <input type="number" min={0} value={pct} onChange={(e) => setPct(e.target.value)} className="input" placeholder="e.g., 15" />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="label">Risk Preference</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+                    {["Low", "Medium", "High"].map((lvl) => {
+                      const isSelected = risk === lvl;
+                      const colorVar = `var(--risk-${lvl.substring(0,3).toLowerCase()})`;
+                      return (
+                        <button
+                          key={lvl}
+                          onClick={() => setRisk(lvl)}
+                          style={{
+                            padding: "0.75rem", borderRadius: "var(--radius-md)", fontWeight: 600, fontSize: "0.875rem",
+                            background: isSelected ? "var(--brand-surface-light)" : "var(--white)",
+                            border: `1px solid ${isSelected ? colorVar : "var(--border-light)"}`,
+                            color: isSelected ? colorVar : "var(--text-muted)",
+                            cursor: "pointer", transition: "all 0.2s"
+                          }}
+                        >
+                          {lvl}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
-            <div style={{ ...card, padding: 16 }}>
-              <b>How do cycles work?</b>
-              <div style={{ color: BRAND.muted, marginTop: 6 }}>
-                Pick weeks or months to match crop realities. Payouts occur at
-                the end of the selected cycle.
+          </Reveal>
+
+          {/* Results Side */}
+          <Reveal delay={150}>
+            <div className="card" style={{ background: "var(--text-main)", color: "var(--white)", border: "none" }}>
+              <div style={{ marginBottom: "2rem" }}>
+                <div style={{ fontSize: "0.875rem", color: "#9CA3AF", fontWeight: 600, marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Payout at Maturity</div>
+                <div style={{ fontSize: "3rem", fontWeight: 800, lineHeight: 1 }}>
+                  {fmt(calc.total)}
+                </div>
               </div>
-            </div>
-            <div style={{ ...card, padding: 16 }}>
-              <b>What about risk?</b>
-              <div style={{ color: BRAND.muted, marginTop: 6 }}>
-                You can choose Low/Medium/High opportunities. Insurance partners
-                and monitoring help manage risk.
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "1rem" }}>
+                  <span style={{ color: "#9CA3AF" }}>Principal Invested</span>
+                  <span style={{ fontWeight: 600 }}>{fmt(calc.p)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "1rem" }}>
+                  <span style={{ color: "#9CA3AF" }}>Projected Profit</span>
+                  <span style={{ fontWeight: 600, color: "#34D399" }}>+{fmt(calc.roi)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#9CA3AF" }}>Monthly Yield Equivalent</span>
+                  <span style={{ fontWeight: 600 }}>{calc.perMonth.toFixed(2)}% / mo</span>
+                </div>
               </div>
+
+              <div style={{ background: "rgba(255,255,255,0.05)", padding: "1.25rem", borderRadius: "var(--radius-md)", fontSize: "0.875rem", color: "#D1D5DB" }}>
+                <strong style={{ color: "var(--white)", display: "block", marginBottom: "0.5rem" }}>Note:</strong>
+                Percentage entered is for the entire {calc.m}-month cycle. Risk tier selection determines insurance coverage and asset allocation, not the mathematical return calculated here.
+              </div>
+
+              <a href="/register" className="btn btn-primary" style={{ width: "100%", marginTop: "2rem", background: "#34D399", color: "#064E3B", boxShadow: "none" }}>
+                Start Investing Now
+              </a>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ background: BRAND.g2, color: "#d9efe6" }}>
-        <div
-          className="grid2"
-          style={{
-            ...container,
-            display: "grid",
-            gap: 22,
-            gridTemplateColumns: "1.2fr 1fr 1fr",
-            padding: "38px 0",
-          }}
-        >
-          <div>
-            <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 10 }}>
-              SmartFarmer
+      {/* Footer */}
+      <footer style={{ background: "var(--text-main)", color: "#9CA3AF", padding: "4rem 0 2rem" }}>
+        <div className="container">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "3rem", marginBottom: "4rem" }}>
+            <div style={{ gridColumn: "1 / -1", maxWidth: "300px" }}>
+              <div style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--white)", marginBottom: "1rem" }}>SmartFarmer</div>
+              <p style={{ fontSize: "0.875rem" }}>Connecting capital to real agricultural inputs. Predictable yields, transparent processes, and tangible impact.</p>
             </div>
             <div>
-              Invest in real agricultural materials and earn predictable
-              returns.
+              <h4 style={{ color: "var(--white)", marginBottom: "1.25rem" }}>Platform</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <a href="#how" style={{ color: "inherit", textDecoration: "none" }}>How it Works</a>
+                <a href="#estimator" style={{ color: "inherit", textDecoration: "none" }}>Yield Estimator</a>
+                <a href="/security" style={{ color: "inherit", textDecoration: "none" }}>Risk & Security</a>
+              </div>
+            </div>
+            <div>
+              <h4 style={{ color: "var(--white)", marginBottom: "1.25rem" }}>Company</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <a href="/about" style={{ color: "inherit", textDecoration: "none" }}>About Us</a>
+                <a href="/careers" style={{ color: "inherit", textDecoration: "none" }}>Careers</a>
+                <a href="/contact" style={{ color: "inherit", textDecoration: "none" }}>Contact</a>
+              </div>
+            </div>
+            <div>
+              <h4 style={{ color: "var(--white)", marginBottom: "1.25rem" }}>Legal</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <a href="/terms" style={{ color: "inherit", textDecoration: "none" }}>Terms of Service</a>
+                <a href="/privacy" style={{ color: "inherit", textDecoration: "none" }}>Privacy Policy</a>
+              </div>
             </div>
           </div>
-          <div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>Company</div>
-            <FLink href="/about">About</FLink>
-            <FLink href="/careers">Careers</FLink>
-            <FLink href="/privacy">Privacy</FLink>
-            <FLink href="/terms">Terms</FLink>
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>Get Started</div>
-            <FLink href="#estimator">Try Estimator</FLink>
-            <FLink href="/login">Open App</FLink>
-            <FLink href="#faq">Read FAQ</FLink>
-          </div>
-        </div>
-        <div style={{ borderTop: "1px solid rgba(255,255,255,.14)" }}>
-          <div
-            style={{
-              ...container,
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "10px 0",
-              color: "#bfe6da",
-            }}
-          >
-            <span>© {new Date().getFullYear()} SmartFarmer</span>
-            <span>Images: Smart Farmer artwork</span>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", fontSize: "0.875rem" }}>
+            <span>© {new Date().getFullYear()} SmartFarmer Ltd. All rights reserved.</span>
+            <span>Made in Lagos</span>
           </div>
         </div>
       </footer>
 
-      {/* Sticky mobile CTA */}
-      {showSticky && (
-        <div
-          style={{
-            position: "fixed",
-            left: 12,
-            right: 12,
-            bottom: 14,
-            zIndex: 20,
-          }}
-          className="hide-sm"
-        >
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
-          >
-            <a href="/register" style={{ ...btn, textAlign: "center" }}>
-              Create Account
-            </a>
-            <a
-              href="/login"
-              style={{
-                ...btnGhost,
-                textAlign: "center",
-                background: BRAND.white,
-              }}
-            >
-              Login
-            </a>
-          </div>
+      {/* Sticky Mobile CTA (Properly configured for Mobile Only) */}
+      <div className={`mobile-only ${showSticky ? "visible" : ""}`} style={{
+        position: "fixed", bottom: 0, left: 0, right: 0, padding: "1rem",
+        background: "rgba(255,255,255,0.9)", backdropFilter: "blur(12px)", borderTop: "1px solid var(--border-light)",
+        transform: showSticky ? "translateY(0)" : "translateY(100%)", transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)", zIndex: 100
+      }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <a href="/login" className="btn btn-secondary" style={{ padding: "0.75rem" }}>Log in</a>
+          <a href="/register" className="btn btn-primary" style={{ padding: "0.75rem" }}>Sign up</a>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-/* ---------------- tiny atoms ---------------- */
-function KV({ k, v }) {
+/* ---------------- Animation Helper ---------------- */
+function Reveal({ children, delay = 0 }) {
+  const ref = useRef(null);
+  const [show, setShow] = useState(false);
+  
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setShow(true); },
+      { threshold: 0.1 }
+    );
+    if (ref.current) io.observe(ref.current);
+    return () => io.disconnect();
+  }, []);
+  
   return (
     <div
+      ref={ref}
       style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "10px 12px",
-        borderRadius: 12,
-        border: "1px solid #E6EEE9",
-        background: "#fff",
-        marginTop: 8,
+        opacity: show ? 1 : 0,
+        transform: show ? "translateY(0)" : "translateY(24px)",
+        transition: `opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+        willChange: "opacity, transform"
       }}
     >
-      <span style={{ color: "#5B6B66" }}>{k}</span>
-      <span style={{ fontWeight: 900 }}>{v}</span>
+      {children}
     </div>
   );
 }
-const FLink = ({ href, children }) => (
-  <div style={{ marginBottom: 6 }}>
-    <a href={href} style={{ color: "#cfe9e1", textDecoration: "none" }}>
-      {children}
-    </a>
-  </div>
-);
