@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, getDoc, collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { FiSettings, FiLogOut, FiTrendingUp, FiTarget, FiBriefcase, FiPlusCircle, FiGrid, FiSearch, FiClock ,FiEdit} from 'react-icons/fi';
+import { FiSettings, FiLogOut, FiTrendingUp, FiTarget, FiBriefcase, FiPlusCircle, FiGrid, FiSearch, FiClock, FiChevronRight } from 'react-icons/fi';
 import EmailVerificationBanner from './EmailVerificationBanner';
 import apiClient from '../axiosConfig';
 import CircularProgress from './CircularProgress';
@@ -11,13 +11,18 @@ import { useModal } from '../context/ModalContext';
 
 const ProgressBar = ({ current, target }) => {
     const percentage = target > 0 ? (current / target) * 100 : 0;
-    return ( <div className="progress-bar-container"><div className="progress-bar-filled" style={{ width: `${percentage}%` }}></div></div> );
+    return (
+        <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', overflow: 'hidden', marginTop: '12px' }}>
+            <div style={{ width: `${percentage}%`, height: '100%', background: 'linear-gradient(90deg, #22c55e, #10b981)', borderRadius: '10px', transition: 'width 1s ease-in-out' }}></div>
+        </div>
+    );
 };
 
 function Dashboard({ handleLogout, userData }) {
     const { theme } = useTheme();
-     const { showModal } = useModal();
-    const logoSrc = theme === 'light' ? '/logo-light-theme.png' : '/logo-dark-theme.png';
+    const { showModal } = useModal();
+    const isDark = theme === 'dark';
+    const logoSrc = isDark ? '/logo-dark-theme.png' : '/logo-light-theme.png';
     const currentUser = auth.currentUser;
     const [projects, setProjects] = useState([]);
     const [myInvestments, setMyInvestments] = useState([]);
@@ -54,9 +59,7 @@ function Dashboard({ handleLogout, userData }) {
                 email: currentUser.email,
                 amount: amount,
                 callbackUrl: `${window.location.origin}/payment/callback`,
-                metadata: {
-                    userId: currentUser.uid // 🔹 Added userId for webhook
-                }
+                metadata: { userId: currentUser.uid }
             });
             window.location.href = response.data.data.authorization_url;
         } catch (error) {
@@ -67,45 +70,126 @@ function Dashboard({ handleLogout, userData }) {
 
     const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
+    // --- 2026 DESIGN SYSTEM TOKENS ---
+    const styles = {
+        page: {
+            padding: '24px',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            backgroundColor: isDark ? '#08090a' : '#f8fafc',
+            minHeight: '100vh',
+            fontFamily: "'Inter', -apple-system, sans-serif"
+        },
+        header: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '20px 0',
+            flexWrap: 'wrap',
+            gap: '20px'
+        },
+        bentoCard: {
+            backgroundColor: isDark ? '#111827' : '#ffffff',
+            borderRadius: '24px',
+            padding: '32px',
+            border: `1px solid ${isDark ? '#1f2937' : '#e2e8f0'}`,
+            boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.03)',
+        },
+        balanceValue: {
+            fontSize: '42px',
+            fontWeight: '800',
+            letterSpacing: '-1.5px',
+            margin: '8px 0',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+        },
+        btnPrimary: {
+            padding: '12px 24px',
+            borderRadius: '14px',
+            backgroundColor: '#10b981',
+            color: 'white',
+            fontWeight: '600',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease',
+            textDecoration: 'none'
+        },
+        btnOutline: {
+            padding: '12px 24px',
+            borderRadius: '14px',
+            backgroundColor: 'transparent',
+            border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`,
+            color: isDark ? '#f3f4f6' : '#1f2937',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            textDecoration: 'none'
+        },
+        pill: {
+            padding: '4px 12px',
+            borderRadius: '20px',
+            fontSize: '12px',
+            fontWeight: '600',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            color: '#10b981',
+            textTransform: 'uppercase'
+        }
+    };
+
     return (
-        <div className="page-container">
+        <div style={styles.page}>
             {currentUser && !currentUser.emailVerified && <EmailVerificationBanner />}
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <img src={logoSrc} alt="Smart Farmer Logo" className="header-logo" />
-                <div>
-                    <h1 style={{ margin: 0, fontWeight: 700 }}>Welcome, {userData?.firstName || userData?.email?.split('@')[0] || 'User'}!</h1>
-                    <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)' }}>Let's make some green investments today.</p>
+            
+            {/* HEADER */}
+            <header style={styles.header}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <img src={logoSrc} alt="Logo" style={{ height: '48px', borderRadius: '12px' }} />
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>
+                            Hi, {userData?.firstName || 'Farmer'}
+                        </h1>
+                        <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>Market is looking green today.</p>
+                    </div>
                 </div>
-                </div>
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    {userData && userData.role === 'admin' && (<Link to="/admin" className="btn btn-admin"><FiGrid /> Admin Panel</Link>)}
-                    <Link to="/settings" className="btn btn-secondary"><FiSettings /> Settings</Link>
-                    <button onClick={handleLogout} className="btn btn-danger"><FiLogOut /> Logout</button>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    {userData?.role === 'admin' && (
+                        <Link to="/admin" style={styles.btnOutline}><FiGrid /> Admin</Link>
+                    )}
+                    <Link to="/settings" style={styles.btnOutline}><FiSettings /></Link>
+                    <button onClick={handleLogout} style={{ ...styles.btnOutline, color: '#ef4444' }}><FiLogOut /></button>
                 </div>
             </header>
-            
-            <div className="card" style={{ marginBottom: '40px' }}>
-                <h3 style={{ marginTop: 0 }}><FiBriefcase/> Your Account Summary</h3>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+            {/* WALLET SECTION */}
+            <div style={{ ...styles.bentoCard, marginBottom: '40px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '24px' }}>
                     <div>
-                        <p style={{ margin: 0 }}>Available Wallet Balance</p>
-                        <p style={{ margin: '4px 0 0', fontSize: '28px', fontWeight: '700', color: 'var(--accent-color)' }}>₦{userData?.walletBalance?.toLocaleString() || 0}</p>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FiBriefcase /> TOTAL WALLET BALANCE
+                        </span>
+                        <h2 style={styles.balanceValue}>₦{userData?.walletBalance?.toLocaleString() || '0.00'}</h2>
                     </div>
-                    <div style={{display: 'flex', gap: '10px'}}>
-                     <Link to="/add-money" className="btn btn-primary">
-                            <FiPlusCircle /> Add Money Manually
-                        </Link>
-                    <button onClick={handleAddMoney} className="btn btn-primary"><FiPlusCircle /> Add Money with Velvpay</button>
-             
-               </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <Link to="/add-money" style={styles.btnOutline}><FiPlusCircle /> Manual</Link>
+                        <button onClick={handleAddMoney} style={styles.btnPrimary}><FiPlusCircle /> Add Money</button>
+                    </div>
                 </div>
             </div>
 
+            {/* ACTIVE INVESTMENTS CAROUSEL */}
             {myInvestments.length > 0 && (
-                <div className="your-investments-section">
-                    <h2 style={{ textAlign: 'left', margin: 0, marginBottom: '20px' }}>Your Active Investments</h2>
-                    <div className="investment-carousel">
+                <div style={{ marginBottom: '48px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2 style={{ fontSize: '20px', fontWeight: '800' }}>Active Assets</h2>
+                        <span style={{ color: '#10b981', fontSize: '14px', fontWeight: '600' }}>{myInvestments.length} Active</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '20px', overflowX: 'auto', paddingBottom: '15px', scrollbarWidth: 'none' }}>
                         {myInvestments.map(investment => {
                             const investmentDate = investment.createdAt.toDate();
                             const maturityDate = new Date(investmentDate);
@@ -116,17 +200,22 @@ function Dashboard({ handleLogout, userData }) {
                             const daysLeft = Math.ceil((maturityDate - new Date()) / (1000 * 60 * 60 * 24));
 
                             return (
-                                <Link to={`/project/${investment.projectId}`} key={investment.id} className="carousel-card-link">
-                                    <div className="card carousel-card">
-                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                                            <p className="carousel-card-title">{investment.name}</p>
+                                <Link to={`/project/${investment.projectId}`} key={investment.id} style={{ textDecoration: 'none', flex: '0 0 300px' }}>
+                                    <div style={{ ...styles.bentoCard, padding: '20px', height: '100%' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                            <span style={styles.pill}>{investment.riskLevel}</span>
                                             <CircularProgress percentage={percentage} />
                                         </div>
-                                        <div style={{marginTop: '15px'}}>
-                                            <p className="carousel-card-label">Amount Invested</p>
-                                            <p className="carousel-card-value">₦{investment.amount.toLocaleString()}</p>
-                                            <p className="carousel-card-label" style={{marginTop: '10px'}}>Days Left</p>
-                                            <p className="carousel-card-value" style={{color: 'var(--text-color)'}}>{daysLeft > 0 ? `${daysLeft} days` : 'Matured'}</p>
+                                        <h4 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: '700', color: isDark ? '#fff' : '#1f2937' }}>{investment.name}</h4>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>Investment</p>
+                                                <p style={{ margin: 0, fontWeight: '700' }}>₦{investment.amount.toLocaleString()}</p>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>Status</p>
+                                                <p style={{ margin: 0, fontWeight: '700', color: '#10b981' }}>{daysLeft > 0 ? `${daysLeft}d left` : 'Matured'}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>
@@ -136,32 +225,54 @@ function Dashboard({ handleLogout, userData }) {
                 </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '40px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2 style={{ textAlign: 'left', margin: 0 }}>Top Crops to Invest In</h2>
-                    <div className="search-bar-container">
-                        <FiSearch className="search-bar-icon" />
-                        <input type="text" placeholder="Search..." className="search-bar-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            {/* CROP LISTING */}
+            <div style={{ marginTop: '40px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                    <h2 style={{ fontSize: '20px', fontWeight: '800', margin: 0 }}>Available Crops</h2>
+                    <div style={{ position: 'relative', width: '300px' }}>
+                        <FiSearch style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                        <input 
+                            type="text" 
+                            placeholder="Search investments..." 
+                            style={{ width: '100%', padding: '12px 12px 12px 40px', borderRadius: '14px', border: `1px solid ${isDark ? '#374151' : '#e2e8f0'}`, backgroundColor: isDark ? '#111827' : '#fff', color: isDark ? '#fff' : '#000', outline: 'none' }}
+                            value={searchTerm} 
+                            onChange={(e) => setSearchTerm(e.target.value)} 
+                        />
                     </div>
                 </div>
-                {filteredProjects.map(project => (
-                    <Link to={`/project/${project.id}`} key={project.id} className="project-link">
-                       <div className="card project-card-hover">
-                            <div className="project-card-header">
-                                <div className="project-card-info">
-                                    <h4 className="project-card-title">{project.name}</h4>
-                                    <p className="project-card-subtitle">Risk Level: <b>{project.riskLevel}</b></p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' }}>
+                    {filteredProjects.map(project => (
+                        <Link to={`/project/${project.id}`} key={project.id} style={{ textDecoration: 'none' }}>
+                            <div style={{ ...styles.bentoCard, padding: '24px', transition: 'transform 0.2s ease' }} className="project-hover-card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <h4 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800', color: isDark ? '#fff' : '#111827' }}>{project.name}</h4>
+                                        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Risk: <span style={{ fontWeight: '700', color: '#10b981' }}>{project.riskLevel}</span></p>
+                                    </div>
+                                    <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '8px', borderRadius: '10px' }}>
+                                        <FiTrendingUp style={{ color: '#10b981', fontSize: '20px' }} />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '20px', margin: '20px 0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: '600' }}>
+                                        <FiTrendingUp style={{ color: '#10b981' }} /> {project.returnPercentage}%
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: '600' }}>
+                                        <FiClock style={{ color: '#64748b' }} /> {project.durationDays} Days
+                                    </div>
+                                </div>
+
+                                <ProgressBar current={project.currentAmount} target={project.targetAmount} />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '12px', fontWeight: '700', color: '#64748b' }}>
+                                    <span>₦{project.currentAmount?.toLocaleString()}</span>
+                                    <span>Target: ₦{project.targetAmount?.toLocaleString()}</span>
                                 </div>
                             </div>
-                            <div className="project-card-stats">
-                                <span><FiTrendingUp className="accent-icon" /> {project.returnPercentage}% Return</span>
-                                <span><FiClock className="accent-icon" /> {project.durationDays} Days</span>
-                            </div>
-                            <ProgressBar current={project.currentAmount} target={project.targetAmount} />
-                            <p className="project-card-funding">₦{project.currentAmount?.toLocaleString()} / ₦{project.targetAmount?.toLocaleString()}</p>
-                        </div>
-                    </Link>
-                ))}
+                        </Link>
+                    ))}
+                </div>
             </div>
         </div>
     );
