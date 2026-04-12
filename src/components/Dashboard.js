@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { auth, db } from '../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { FiSettings, FiLogOut, FiTrendingUp, FiBriefcase, FiPlusCircle, FiGrid, FiSearch, FiClock } from 'react-icons/fi';
+import { signOut } from 'firebase/auth'; // Ensure signOut is imported
 import EmailVerificationBanner from './EmailVerificationBanner';
 import CircularProgress from './CircularProgress';
 import { useTheme } from '../context/ThemeContext'; 
@@ -17,9 +18,10 @@ const ProgressBar = ({ current, target }) => {
     );
 };
 
-function Dashboard({ handleLogout, userData }) {
+function Dashboard({ userData }) {
     const { theme } = useTheme();
     const { showModal } = useModal();
+    const navigate = useNavigate(); // Hook for navigation
     const isDark = theme === 'dark';
     const logoSrc = isDark ? '/logo-dark-theme.png' : '/logo-light-theme.png';
     const currentUser = auth.currentUser;
@@ -29,7 +31,25 @@ function Dashboard({ handleLogout, userData }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-    // Responsive Listener
+    // --- LOGOUT LOGIC ---
+    const handleLogout = async () => {
+        try {
+            await signOut(auth); // Clear Firebase session
+            navigate('/', { replace: true }); // Redirect to landing page and clear history stack
+        } catch (error) {
+            console.error("Error logging out:", error);
+            showModal("Failed to log out. Please try again.");
+        }
+    };
+
+    // --- AUTH PROTECTION ---
+    // If someone tries to access this page without a user, redirect them immediately
+    useEffect(() => {
+        if (!currentUser) {
+            navigate('/', { replace: true });
+        }
+    }, [currentUser, navigate]);
+
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
@@ -39,29 +59,36 @@ function Dashboard({ handleLogout, userData }) {
     useEffect(() => {
         if (!currentUser) return;
         const fetchData = async () => {
-            const projectsCollectionRef = collection(db, "projects");
-            const projectsData = await getDocs(projectsCollectionRef);
-            const projectsList = projectsData.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-            setProjects(projectsList);
-            
-            const investmentsQuery = query(collection(db, "investments"), where("userId", "==", currentUser.uid), where("status", "==", "active"));
-            const investmentsSnapshot = await getDocs(investmentsQuery);
-            const userInvestments = investmentsSnapshot.docs.map(doc => ({...doc.data(), id: doc.id}));
-            
-            const myInvestmentsWithDetails = userInvestments.map(investment => {
-                const projectDetails = projectsList.find(p => p.id === investment.projectId);
-                return { ...investment, ...projectDetails };
-            });
-            setMyInvestments(myInvestmentsWithDetails);
+            try {
+                const projectsCollectionRef = collection(db, "projects");
+                const projectsData = await getDocs(projectsCollectionRef);
+                const projectsList = projectsData.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                setProjects(projectsList);
+                
+                const investmentsQuery = query(
+                    collection(db, "investments"), 
+                    where("userId", "==", currentUser.uid), 
+                    where("status", "==", "active")
+                );
+                const investmentsSnapshot = await getDocs(investmentsQuery);
+                const userInvestments = investmentsSnapshot.docs.map(doc => ({...doc.data(), id: doc.id}));
+                
+                const myInvestmentsWithDetails = userInvestments.map(investment => {
+                    const projectDetails = projectsList.find(p => p.id === investment.projectId);
+                    return { ...investment, ...projectDetails };
+                });
+                setMyInvestments(myInvestmentsWithDetails);
+            } catch (err) {
+                console.error("Data fetch error:", err);
+            }
         };
         fetchData();
     }, [currentUser]);
 
     const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
     const isMobile = windowWidth < 768;
 
-    // --- 2026 PREMIUM DESIGN TOKENS ---
+    // Premium Styles Object (maintained from previous version)
     const styles = {
         page: {
             padding: isMobile ? '16px' : '40px 24px',
@@ -70,8 +97,7 @@ function Dashboard({ handleLogout, userData }) {
             backgroundColor: isDark ? '#050505' : '#fcfcfd',
             minHeight: '100vh',
             color: isDark ? '#ffffff' : '#000000',
-            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-            transition: 'all 0.3s ease'
+            fontFamily: "'Inter', sans-serif",
         },
         header: {
             display: 'flex',
@@ -115,7 +141,6 @@ function Dashboard({ handleLogout, userData }) {
             alignItems: 'center',
             gap: '10px',
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
             textDecoration: 'none',
             justifyContent: 'center'
         },
@@ -135,6 +160,9 @@ function Dashboard({ handleLogout, userData }) {
         }
     };
 
+    // Return null or a loader if user is not authenticated to prevent flickering
+    if (!currentUser) return null;
+
     return (
         <div style={styles.page}>
             {currentUser && !currentUser.emailVerified && <EmailVerificationBanner />}
@@ -143,7 +171,7 @@ function Dashboard({ handleLogout, userData }) {
                 <div style={styles.greetingBox}>
                     <img src={logoSrc} alt="Logo" style={{ height: '52px', width: '52px', objectFit: 'contain' }} />
                     <div>
-                        <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '26px', fontWeight: 800, letterSpacing: '-0.5px' }}>
+                        <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '26px', fontWeight: 800 }}>
                             Hi, {userData?.username || 'Farmer'}
                         </h1>
                         <p style={{ margin: 0, color: '#666', fontSize: '14px', fontWeight: 500 }}>Portfolio Snapshot</p>
@@ -155,7 +183,10 @@ function Dashboard({ handleLogout, userData }) {
                         <Link to="/admin" style={styles.actionButton}><FiGrid /> Admin</Link>
                     )}
                     <Link to="/settings" style={styles.actionButton}><FiSettings /></Link>
-                    <button onClick={handleLogout} style={{ ...styles.actionButton, color: '#ff4d4d' }}><FiLogOut /></button>
+                    {/* Logout Button updated to trigger internal handleLogout */}
+                    <button onClick={handleLogout} style={{ ...styles.actionButton, color: '#ff4d4d' }}>
+                        <FiLogOut /> Logout
+                    </button>
                 </div>
             </header>
 
@@ -212,7 +243,7 @@ function Dashboard({ handleLogout, userData }) {
                 </div>
             )}
 
-            {/* MARKETPLACE */}
+            {/* MARKETPLACE SECTION (Rest of the original code follows...) */}
             <div style={{ marginTop: '40px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexDirection: isMobile ? 'column' : 'row', gap: '16px' }}>
                     <h2 style={{ fontSize: '22px', fontWeight: '800', margin: 0 }}>Green Marketplace</h2>
