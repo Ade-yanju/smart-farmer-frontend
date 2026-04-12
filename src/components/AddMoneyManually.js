@@ -28,8 +28,8 @@ function AddMoneyManually() {
     const isMobile = screenSize < 768;
 
     const companyAccounts = [
-        { bankName: "Vfd Bank", accountNumber: "1040594549", accountName: "Smart Farmer" },
-        { bankName: "Kolomoni", accountNumber: "0990028382", accountName: "Smart Farmer" }
+        { bankName: "Opay", accountNumber: "6423280528", accountName: "Smart Farmer Systems" }
+        // { bankName: "Kolomoni", accountNumber: "0990028382", accountName: "Smart Farmer" }
     ];
 
     const selectedAccount = companyAccounts[selectedAccountIndex];
