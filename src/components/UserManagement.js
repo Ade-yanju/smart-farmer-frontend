@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import apiClient from '../axiosConfig'; 
-import { FiEdit, FiTrash2, FiUser, FiShield, FiFilter, FiCheckSquare, FiSquare, FiXCircle, FiSearch } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiUser, FiShield, FiFilter, FiCheckSquare, FiSquare, FiX, FiSearch, FiMoreHorizontal } from 'react-icons/fi';
 import { useModal } from '../context/ModalContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -9,7 +9,7 @@ function UserManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [filter, setFilter] = useState('all'); // all, admin, user
+    const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     
     const { showModal } = useModal();
@@ -31,7 +31,44 @@ function UserManagement() {
 
     useEffect(() => { fetchUsers(); }, []);
 
-    // --- LOGIC: Filtering & Selection ---
+    // --- NEW: LOGIC DEFINITIONS (Fixed the handleDeleteUser error) ---
+    
+    const handleDeleteUser = async (uid, email) => {
+        if (!window.confirm(`CRITICAL: Permanently terminate account ${email}?`)) return;
+        try {
+            await apiClient.delete(`/admin/users/${uid}`);
+            showModal('Identity purged successfully.');
+            fetchUsers();
+        } catch (err) {
+            showModal('Operation failed. Check server logs.');
+        }
+    };
+
+    const handleMassDelete = async () => {
+        const count = selectedUsers.length;
+        if (!window.confirm(`DESTRUCTION PROTOCOL: Purge ${count} accounts? This is irreversible.`)) return;
+        try {
+            await Promise.all(selectedUsers.map(uid => apiClient.delete(`/admin/users/${uid}`)));
+            showModal(`${count} accounts removed.`);
+            setSelectedUsers([]);
+            fetchUsers();
+        } catch (err) {
+            showModal('Batch operation encountered errors.');
+        }
+    };
+
+    const handleSetRole = async (uid, email, currentRole) => {
+        const newRole = currentRole === 'admin' ? 'user' : 'admin';
+        try {
+            await apiClient.post('/admin/users/setrole', { uid, role: newRole });
+            showModal(`Access level for ${email} set to ${newRole}.`);
+            fetchUsers();
+        } catch (error) {
+            showModal('Authorization handshake failed.');
+        }
+    };
+
+    // --- FILTERING ---
     const filteredUsers = useMemo(() => {
         return users.filter(u => {
             const matchesSearch = u.email.toLowerCase().includes(searchQuery.toLowerCase());
@@ -41,7 +78,7 @@ function UserManagement() {
     }, [users, searchQuery, filter]);
 
     const toggleSelectAll = () => {
-        if (selectedUsers.length === filteredUsers.length) {
+        if (selectedUsers.length === filteredUsers.length && filteredUsers.length > 0) {
             setSelectedUsers([]);
         } else {
             setSelectedUsers(filteredUsers.map(u => u.uid));
@@ -54,221 +91,185 @@ function UserManagement() {
         );
     };
 
-    // --- ACTIONS ---
-    const handleMassDelete = async () => {
-        const count = selectedUsers.length;
-        if (!window.confirm(`SECURITY PROTOCOL: Permanently terminate ${count} user accounts?`)) return;
-        
-        try {
-            // Assuming backend supports batch delete or looping for now
-            await Promise.all(selectedUsers.map(uid => apiClient.delete(`/admin/users/${uid}`)));
-            showModal(`${count} accounts purged successfully.`);
-            setSelectedUsers([]);
-            fetchUsers();
-        } catch (err) {
-            showModal('Purge failed. Partial deletion may have occurred.');
-        }
-    };
-
-    const handleSetRole = async (uid, email, currentRole) => {
-        const newRole = currentRole === 'admin' ? 'user' : 'admin';
-        try {
-            await apiClient.post('/admin/users/setrole', { uid, role: newRole });
-            showModal(`Permissions updated for ${email}`);
-            fetchUsers();
-        } catch (error) {
-            showModal('Authorization update failed.');
-        }
-    };
-
-    // --- 2026 PREMIUM INLINE STYLES ---
+    // --- 2026 ULTRA-MODERN STYLES ---
     const styles = {
-        wrapper: {
-            padding: '24px',
-            background: isDark ? 'rgba(10,10,10,0.4)' : '#fff',
-            borderRadius: '24px',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#eee'}`,
-            fontFamily: "'Inter', sans-serif"
-        },
-        actionBar: {
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-            flexWrap: 'wrap',
-            gap: '16px'
-        },
-        searchWrapper: {
+        container: {
             position: 'relative',
-            flex: 1,
-            minWidth: '280px'
+            background: isDark ? 'linear-gradient(145deg, #0f0f0f, #1a1a1a)' : '#ffffff',
+            borderRadius: '32px',
+            padding: '32px',
+            boxShadow: isDark ? '0 25px 50px -12px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.04)',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}`,
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
         },
-        input: {
-            width: '100%',
-            padding: '12px 16px 12px 40px',
-            borderRadius: '12px',
-            border: `1px solid ${isDark ? '#333' : '#e0e0e0'}`,
-            background: isDark ? '#000' : '#f9f9f9',
-            color: isDark ? '#fff' : '#000',
-            outline: 'none',
-            fontSize: '14px'
-        },
-        filterPill: (active) => ({
-            padding: '8px 16px',
+        batchOverlay: {
+            position: 'fixed',
+            bottom: '40px',
+            left: '50%',
+            transform: `translateX(-50%) translateY(${selectedUsers.length > 0 ? '0' : '100px'})`,
+            background: isDark ? '#fff' : '#000',
+            color: isDark ? '#000' : '#fff',
+            padding: '12px 24px',
             borderRadius: '100px',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '600',
-            background: active ? (isDark ? '#fff' : '#000') : (isDark ? '#222' : '#f0f0f0'),
-            color: active ? (isDark ? '#000' : '#fff') : (isDark ? '#888' : '#666'),
-            transition: 'all 0.2s ease'
-        }),
-        bulkDeleteBtn: {
-            background: '#ff4d4d',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '12px',
-            fontWeight: '700',
-            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            animation: 'fadeIn 0.3s ease'
+            gap: '20px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+            zIndex: 1000,
+            transition: 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            opacity: selectedUsers.length > 0 ? 1 : 0
         },
-        table: {
-            width: '100%',
-            borderCollapse: 'separate',
-            borderSpacing: '0 8px'
-        },
-        tr: {
-            background: isDark ? 'rgba(255,255,255,0.02)' : '#fff',
-            transition: 'transform 0.2s ease',
-        },
-        th: {
-            padding: '12px',
-            textAlign: 'left',
-            fontSize: '12px',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            color: '#888'
-        },
-        td: {
-            padding: '16px 12px',
-            borderBottom: isDark ? '1px solid #1a1a1a' : '1px solid #f5f5f5',
-            fontSize: '14px'
-        },
-        badge: (role) => ({
-            padding: '4px 10px',
-            borderRadius: '6px',
-            fontSize: '11px',
-            fontWeight: '800',
-            textTransform: 'uppercase',
-            background: role === 'admin' ? 'rgba(124, 58, 237, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-            color: role === 'admin' ? '#8b5cf6' : '#10b981',
-            display: 'inline-flex',
+        searchBar: {
+            display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            background: isDark ? 'rgba(255,255,255,0.03)' : '#f3f4f6',
+            borderRadius: '16px',
+            padding: '0 16px',
+            flex: 1,
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'transparent'}`,
+            transition: 'all 0.2s ease'
+        },
+        tableRow: (selected) => ({
+            background: selected ? (isDark ? 'rgba(124, 58, 237, 0.08)' : 'rgba(124, 58, 237, 0.04)') : 'transparent',
+            borderRadius: '16px',
+            transition: 'background 0.2s ease'
+        }),
+        actionBtn: (type) => ({
+            width: '36px',
+            height: '36px',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: 'none',
+            cursor: 'pointer',
+            background: type === 'delete' ? 'rgba(239, 68, 68, 0.1)' : (isDark ? 'rgba(255,255,255,0.05)' : '#fff'),
+            color: type === 'delete' ? '#ef4444' : (isDark ? '#fff' : '#000'),
+            boxShadow: type === 'delete' ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+            transition: 'all 0.2s ease'
         })
     };
 
-    if (loading) return <div style={{padding: '40px', textAlign: 'center', color: '#888'}}>Decrypting User Directory...</div>;
+    if (loading) return <div style={{padding: '100px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '2px'}}>SYNCHRONIZING...</div>;
 
     return (
-        <div style={styles.wrapper}>
-            <div style={styles.actionBar}>
+        <div style={styles.container}>
+            {/* Header Section */}
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px'}}>
                 <div>
-                    <h2 style={{margin: 0, fontWeight: 800, fontSize: '24px', letterSpacing: '-1px'}}>User Directory</h2>
-                    <p style={{margin: '4px 0 0', color: '#888', fontSize: '13px'}}>Manage system access and permissions</p>
+                    <h1 style={{margin: 0, fontSize: '28px', fontWeight: 900, letterSpacing: '-1px'}}>Vault Access</h1>
+                    <p style={{color: '#888', fontSize: '14px', marginTop: '4px'}}>Real-time user authority management</p>
                 </div>
-                
-                <div style={{display: 'flex', gap: '8px'}}>
+                <div style={{display: 'flex', background: isDark ? '#000' : '#f3f4f6', padding: '4px', borderRadius: '12px'}}>
                     {['all', 'admin', 'user'].map(t => (
                         <button 
-                            key={t} 
-                            style={styles.filterPill(filter === t)}
+                            key={t}
                             onClick={() => setFilter(t)}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                textTransform: 'uppercase',
+                                background: filter === t ? (isDark ? '#222' : '#fff') : 'transparent',
+                                color: filter === t ? (isDark ? '#fff' : '#000') : '#888',
+                                boxShadow: filter === t ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                                transition: 'all 0.2s'
+                            }}
                         >
-                            {t.toUpperCase()}
+                            {t}
                         </button>
                     ))}
                 </div>
             </div>
 
-            <div style={styles.actionBar}>
-                <div style={styles.searchWrapper}>
-                    <FiSearch style={{position: 'absolute', left: '14px', top: '14px', color: '#666'}} />
+            {/* Actions Bar */}
+            <div style={{display: 'flex', gap: '16px', marginBottom: '24px'}}>
+                <div style={styles.searchBar}>
+                    <FiSearch color="#888" />
                     <input 
-                        style={styles.input} 
-                        placeholder="Search by email or UID..." 
+                        placeholder="Scan identities..." 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '14px',
+                            color: isDark ? '#fff' : '#000',
+                            width: '100%',
+                            outline: 'none',
+                            fontSize: '14px'
+                        }}
                     />
                 </div>
-
-                {selectedUsers.length > 0 && (
-                    <button style={styles.bulkDeleteBtn} onClick={handleMassDelete}>
-                        <FiTrash2 /> Terminate ({selectedUsers.length})
-                    </button>
-                )}
             </div>
 
+            {/* Data Grid */}
             <div style={{overflowX: 'auto'}}>
-                <table style={styles.table}>
+                <table style={{width: '100%', borderCollapse: 'separate', borderSpacing: '0 12px'}}>
                     <thead>
-                        <tr>
-                            <th style={{width: '40px'}}>
-                                <button 
-                                    onClick={toggleSelectAll}
-                                    style={{background: 'none', border: 'none', cursor: 'pointer', color: isDark ? '#fff' : '#000', fontSize: '18px'}}
-                                >
-                                    {selectedUsers.length === filteredUsers.length ? <FiCheckSquare color="#7c3aed"/> : <FiSquare/>}
+                        <tr style={{color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px'}}>
+                            <th style={{padding: '0 12px', width: '40px'}}>
+                                <button onClick={toggleSelectAll} style={{background: 'none', border: 'none', cursor: 'pointer', color: '#7c3aed', fontSize: '20px'}}>
+                                    {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 ? <FiCheckSquare /> : <FiSquare color="#444"/>}
                                 </button>
                             </th>
-                            <th>User Identity</th>
-                            <th>Permission Level</th>
-                            <th>Joined</th>
-                            <th style={{textAlign: 'right'}}>Operations</th>
+                            <th style={{textAlign: 'left', fontWeight: '600'}}>Identity</th>
+                            <th style={{textAlign: 'left', fontWeight: '600'}}>Role</th>
+                            <th style={{textAlign: 'left', fontWeight: '600'}}>Registration</th>
+                            <th style={{textAlign: 'right', fontWeight: '600'}}>Management</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredUsers.map(user => {
                             const isSelected = selectedUsers.includes(user.uid);
                             return (
-                                <tr key={user.uid} style={styles.tr}>
-                                    <td style={styles.td}>
-                                        <button 
-                                            onClick={() => toggleSelectUser(user.uid)}
-                                            style={{background: 'none', border: 'none', cursor: 'pointer', color: isDark ? '#444' : '#ccc', fontSize: '18px'}}
-                                        >
-                                            {isSelected ? <FiCheckSquare color="#7c3aed"/> : <FiSquare/>}
+                                <tr key={user.uid} style={styles.tableRow(isSelected)}>
+                                    <td style={{padding: '16px 12px'}}>
+                                        <button onClick={() => toggleSelectUser(user.uid)} style={{background: 'none', border: 'none', cursor: 'pointer', color: isSelected ? '#7c3aed' : '#444', fontSize: '20px'}}>
+                                            {isSelected ? <FiCheckSquare /> : <FiSquare />}
                                         </button>
                                     </td>
-                                    <td style={styles.td}>
-                                        <div style={{fontWeight: 600}}>{user.email}</div>
-                                        <div style={{fontSize: '11px', color: '#666', fontFamily: 'monospace'}}>{user.uid}</div>
+                                    <td style={{padding: '16px 12px'}}>
+                                        <div style={{fontWeight: '700', color: isDark ? '#fff' : '#1a1a1a'}}>{user.email}</div>
+                                        <div style={{fontSize: '11px', color: '#666', fontFamily: 'monospace', marginTop: '2px'}}>{user.uid.substring(0, 12)}...</div>
                                     </td>
-                                    <td style={styles.td}>
-                                        <span style={styles.badge(user.role)}>
-                                            {user.role === 'admin' ? <FiShield /> : <FiUser />}
+                                    <td style={{padding: '16px 12px'}}>
+                                        <span style={{
+                                            padding: '6px 12px',
+                                            borderRadius: '8px',
+                                            fontSize: '11px',
+                                            fontWeight: '800',
+                                            letterSpacing: '0.5px',
+                                            textTransform: 'uppercase',
+                                            background: user.role === 'admin' ? 'rgba(124, 58, 237, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                            color: user.role === 'admin' ? '#a78bfa' : '#34d399',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}>
+                                            {user.role === 'admin' ? <FiShield size={12}/> : <FiUser size={12}/>}
                                             {user.role || 'user'}
                                         </span>
                                     </td>
-                                    <td style={styles.td}>{new Date(user.createdAt).toLocaleDateString()}</td>
-                                    <td style={{...styles.td, textAlign: 'right'}}>
+                                    <td style={{padding: '16px 12px', color: '#888', fontSize: '13px'}}>
+                                        {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </td>
+                                    <td style={{padding: '16px 12px'}}>
                                         <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
                                             <button 
+                                                style={styles.actionBtn('edit')} 
                                                 onClick={() => handleSetRole(user.uid, user.email, user.role)}
-                                                style={{background: isDark ? '#222' : '#f0f0f0', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: isDark ? '#fff' : '#000'}}
-                                                title="Toggle Role"
+                                                title="Elevate/Demote"
                                             >
                                                 <FiEdit size={16}/>
                                             </button>
                                             <button 
+                                                style={styles.actionBtn('delete')} 
                                                 onClick={() => handleDeleteUser(user.uid, user.email)}
-                                                style={{background: 'rgba(255,77,77,0.1)', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: '#ff4d4d'}}
-                                                title="Delete"
+                                                title="Purge Identity"
                                             >
                                                 <FiTrash2 size={16}/>
                                             </button>
@@ -280,16 +281,45 @@ function UserManagement() {
                     </tbody>
                 </table>
             </div>
-            
+
+            {/* Batch Action Floating Overlay */}
+            <div style={styles.batchOverlay}>
+                <span style={{fontWeight: '800', fontSize: '14px'}}>{selectedUsers.length} Identities Selected</span>
+                <div style={{width: '1px', height: '24px', background: isDark ? '#ddd' : '#333'}}></div>
+                <button 
+                    onClick={handleMassDelete}
+                    style={{
+                        background: '#ef4444',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '8px 18px',
+                        borderRadius: '100px',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}
+                >
+                    <FiTrash2 /> Purge Selected
+                </button>
+                <button 
+                    onClick={() => setSelectedUsers([])}
+                    style={{background: 'none', border: 'none', color: isDark ? '#666' : '#ccc', cursor: 'pointer'}}
+                >
+                    <FiX size={20}/>
+                </button>
+            </div>
+
             <style>
                 {`
-                    @keyframes fadeIn {
-                        from { opacity: 0; transform: translateY(-10px); }
-                        to { opacity: 1; transform: translateY(0); }
+                    tr:hover td {
+                        background: ${isDark ? 'rgba(255,255,255,0.03)' : '#f9fafb'};
                     }
-                    tr:hover {
-                        background: ${isDark ? 'rgba(255,255,255,0.05)' : '#fcfcfc'} !important;
-                    }
+                    tr td:first-child { border-radius: 12px 0 0 12px; }
+                    tr td:last-child { border-radius: 0 12px 12px 0; }
+                    input::placeholder { color: #555; }
                 `}
             </style>
         </div>
