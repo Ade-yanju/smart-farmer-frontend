@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { FiClipboard, FiSend, FiArrowLeft, FiCheckCircle, FiCopy } from 'react-icons/fi';
+import { FiClipboard, FiSend, FiArrowLeft, FiCheckCircle, FiCopy, FiZap, FiClock } from 'react-icons/fi';
 import { useModal } from '../context/ModalContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -29,7 +29,6 @@ function AddMoneyManually() {
 
     const companyAccounts = [
         { bankName: "Opay", accountNumber: "6423280528", accountName: "Smart Farmer Systems" }
-        // { bankName: "Kolomoni", accountNumber: "0990028382", accountName: "Smart Farmer" }
     ];
 
     const selectedAccount = companyAccounts[selectedAccountIndex];
@@ -54,7 +53,7 @@ function AddMoneyManually() {
                 createdAt: serverTimestamp(),
                 transferredTo: selectedAccount.bankName
             });
-            setStatus({ message: 'Claim submitted! Reviewing within 24 hours.', type: 'success' });
+            setStatus({ message: 'Claim submitted! Your wallet will be funded within 30 minutes.', type: 'success' });
             setAmount('');
             setSenderName('');
         } catch (error) {
@@ -64,7 +63,6 @@ function AddMoneyManually() {
         }
     };
 
-    // --- 2026 DESIGN TOKENS (Aceternity Inspired) ---
     const styles = {
         page: {
             minHeight: '100vh',
@@ -101,8 +99,7 @@ function AddMoneyManually() {
         grid: {
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 1.2fr',
-            gap: '24px',
-            perspective: '1000px'
+            gap: '24px'
         },
         bentoCard: {
             background: isDark ? 'rgba(15, 15, 15, 0.7)' : '#ffffff',
@@ -111,7 +108,8 @@ function AddMoneyManually() {
             padding: isMobile ? '24px' : '40px',
             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
             boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.03)',
-            transition: 'transform 0.3s ease'
+            position: 'relative',
+            overflow: 'hidden'
         },
         stepBadge: {
             display: 'inline-block',
@@ -124,6 +122,20 @@ function AddMoneyManually() {
             marginBottom: '16px',
             textTransform: 'uppercase',
             letterSpacing: '1px'
+        },
+        speedTier: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            borderRadius: '100px',
+            backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ECFDF5',
+            color: '#10B981',
+            fontSize: '12px',
+            fontWeight: '800',
+            position: 'absolute',
+            top: '24px',
+            right: '24px'
         },
         toggleContainer: {
             display: 'flex',
@@ -141,7 +153,7 @@ function AddMoneyManually() {
             fontSize: '14px',
             fontWeight: '600',
             cursor: 'pointer',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'all 0.2s',
             backgroundColor: active ? (isDark ? '#222' : '#fff') : 'transparent',
             color: active ? (isDark ? '#fff' : '#0f172a') : '#64748b',
             boxShadow: active ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
@@ -155,8 +167,7 @@ function AddMoneyManually() {
             borderRadius: '16px',
             border: `1px solid ${isDark ? '#222' : '#e2e8f0'}`,
             fontSize: '18px',
-            fontWeight: '700',
-            letterSpacing: '0.5px'
+            fontWeight: '700'
         },
         input: {
             width: '100%',
@@ -167,7 +178,6 @@ function AddMoneyManually() {
             color: isDark ? '#fff' : '#000',
             fontSize: '16px',
             outline: 'none',
-            transition: 'all 0.2s',
             boxSizing: 'border-box'
         },
         primaryBtn: {
@@ -184,7 +194,6 @@ function AddMoneyManually() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '12px',
-            transition: 'transform 0.1s active',
             boxShadow: '0 10px 20px rgba(0,0,0,0.1)'
         }
     };
@@ -200,16 +209,16 @@ function AddMoneyManually() {
                         Refill Wallet
                     </h1>
                     <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto' }}>
-                        Experience seamless manual funding with our verified institutional accounts.
+                        Seamless manual funding. Your transfer is verified and credited instantly.
                     </p>
                 </header>
 
                 <div style={styles.grid}>
-                    {/* STEP 1: TRANSFER */}
+                    {/* STEP 1 */}
                     <div style={styles.bentoCard}>
                         <span style={styles.stepBadge}>Step 01</span>
                         <h2 style={{ fontSize: '24px', margin: '0 0 10px 0' }}>Bank Transfer</h2>
-                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>Choose a secure gateway below.</p>
+                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>Transfer to the account below.</p>
 
                         <div style={styles.toggleContainer}>
                             {companyAccounts.map((account, index) => (
@@ -228,10 +237,7 @@ function AddMoneyManually() {
                                 <label style={{ fontSize: '12px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Account Number</label>
                                 <div style={styles.infoBox}>
                                     <span style={{ fontFamily: 'monospace' }}>{selectedAccount.accountNumber}</span>
-                                    <button 
-                                        onClick={() => handleCopy(selectedAccount.accountNumber)} 
-                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3B82F6', fontSize: '20px' }}
-                                    >
+                                    <button onClick={() => handleCopy(selectedAccount.accountNumber)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3B82F6', fontSize: '20px' }}>
                                         <FiCopy />
                                     </button>
                                 </div>
@@ -246,34 +252,43 @@ function AddMoneyManually() {
                         </div>
                     </div>
 
-                    {/* STEP 2: CLAIM */}
+                    {/* STEP 2 */}
                     <div style={styles.bentoCard}>
+                        <div style={styles.speedTier}>
+                            <FiZap /> 30 Min Processing
+                        </div>
                         <span style={styles.stepBadge}>Step 02</span>
                         <h2 style={{ fontSize: '24px', margin: '0 0 10px 0' }}>Confirm Payment</h2>
-                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>Our AI-enhanced review team will verify your claim.</p>
+                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>
+                            Submit your claim. Verified deposits are credited within <strong>30 minutes</strong>.
+                        </p>
 
                         <form onSubmit={handleSubmitClaim} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div>
-                                <label style={styles.inputLabel}>Amount Sent (₦)</label>
+                                <label style={{ fontSize: '12px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Amount Sent (₦)</label>
                                 <input 
                                     style={styles.input} 
                                     type="number" 
-                                    placeholder="5,000" 
+                                    placeholder="e.g. 5000" 
                                     value={amount} 
                                     onChange={(e) => setAmount(e.target.value)} 
                                     required 
                                 />
                             </div>
                             <div>
-                                <label style={styles.inputLabel}>Sender Display Name</label>
+                                <label style={{ fontSize: '12px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Sender Display Name</label>
                                 <input 
                                     style={styles.input} 
                                     type="text" 
-                                    placeholder="Full Name on Transfer Receipt" 
+                                    placeholder="Full Name on Receipt" 
                                     value={senderName} 
                                     onChange={(e) => setSenderName(e.target.value)} 
                                     required 
                                 />
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '13px' }}>
+                                <FiClock /> <span>Avg. Processing Time: ~20 mins</span>
                             </div>
 
                             {status.message && (
@@ -291,8 +306,12 @@ function AddMoneyManually() {
                             )}
 
                             <button type="submit" style={styles.primaryBtn} disabled={loading}>
-                                <FiSend />
-                                {loading ? 'Securing Claim...' : 'Submit Deposit Request'}
+                                {loading ? 'Processing...' : (
+                                    <>
+                                        <FiSend />
+                                        <span>Submit Deposit Request</span>
+                                    </>
+                                )}
                             </button>
                         </form>
                     </div>
