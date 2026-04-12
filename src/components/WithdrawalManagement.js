@@ -12,7 +12,7 @@ function WithdrawalManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [filter, setFilter] = useState('all');
-    const [selectedIds, setSelectedIds] = useState([]); // Selection state
+    const [selectedIds, setSelectedIds] = useState([]); 
     
     const { showModal } = useModal();
     const { theme } = useTheme();
@@ -23,7 +23,7 @@ function WithdrawalManagement() {
         try {
             const response = await apiClient.get('/admin/withdrawals');
             setWithdrawals(response.data);
-            setSelectedIds([]); // Reset selection on refresh
+            setSelectedIds([]); 
         } catch (err) {
             setError('System Link Failure: Unable to sync ledger.');
         } finally {
@@ -33,7 +33,6 @@ function WithdrawalManagement() {
 
     useEffect(() => { fetchWithdrawals(); }, []);
 
-    // --- Selection Logic ---
     const filteredWithdrawals = useMemo(() => {
         if (filter === 'all') return withdrawals;
         return withdrawals.filter(req => req.status === filter);
@@ -53,13 +52,11 @@ function WithdrawalManagement() {
         );
     };
 
-    // --- Action Handlers ---
     const processAction = async (ids, status) => {
         const actionText = status === 'deleted' ? 'permanently delete' : `mark as ${status}`;
         if (!window.confirm(`CRITICAL: You are about to ${actionText} ${ids.length} record(s). Proceed?`)) return;
 
         try {
-            // In 2026, we assume a bulk endpoint exists, otherwise we map
             await Promise.all(ids.map(id => 
                 apiClient.post('/admin/withdrawals/update', { id, status })
             ));
@@ -70,128 +67,81 @@ function WithdrawalManagement() {
         }
     };
 
-    // --- 2026 Aesthetics ---
-    const styles = {
-        container: {
-            maxWidth: '1600px',
-            margin: '0 auto',
-            background: isDark ? '#000' : '#ffffff',
-            borderRadius: '32px',
-            padding: 'clamp(16px, 4vw, 40px)', // Fluid padding
-            border: `1px solid ${isDark ? '#222' : '#f0f0f0'}`,
-            position: 'relative',
-            minHeight: '80vh'
-        },
-        batchBar: {
-            position: 'fixed',
-            bottom: '32px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(20px)',
-            padding: '12px 24px',
-            borderRadius: '100px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            color: 'white',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-            zIndex: 1000,
-            border: '1px solid rgba(255,255,255,0.1)',
-            visibility: selectedIds.length > 0 ? 'visible' : 'hidden',
-            opacity: selectedIds.length > 0 ? 1 : 0,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-        },
-        batchBtn: (color) => ({
-            background: color,
-            border: 'none',
-            color: 'white',
-            padding: '8px 16px',
-            borderRadius: '50px',
-            cursor: 'pointer',
-            fontSize: '12px',
-            fontWeight: '700',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-        }),
-        checkbox: {
-            cursor: 'pointer',
-            fontSize: '20px',
-            color: '#007AFF',
-            display: 'flex',
-            alignItems: 'center'
-        }
-    };
-
     return (
-        <div style={styles.container}>
+        <div className="withdrawal-root">
             {/* Header Section */}
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px', gap: '20px', flexWrap: 'wrap'}}>
-                <div>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '12px', color: '#888', marginBottom: '8px'}}>
-                        <FiLayers /> <span style={{fontSize: '12px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase'}}>Treasury Control</span>
+            <div className="management-header">
+                <div className="header-title">
+                    <div className="brand-badge">
+                        <FiLayers /> <span>Treasury Control</span>
                     </div>
-                    <h1 style={{fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, margin: 0, letterSpacing: '-1.5px'}}>Withdrawal Queue</h1>
+                    <h1>Withdrawal Queue</h1>
                 </div>
                 
-                {/* Filter Pill */}
-                <div style={{display: 'flex', background: isDark ? '#111' : '#f4f4f4', padding: '6px', borderRadius: '16px'}}>
-                    {['all', 'pending', 'approved', 'rejected'].map(t => (
-                        <button key={t} onClick={() => setFilter(t)} className={filter === t ? 'active-pill' : 'pill'}>{t}</button>
-                    ))}
+                <div className="filter-scroll-container">
+                    <div className="filter-pill-box">
+                        {['all', 'pending', 'approved', 'rejected'].map(t => (
+                            <button 
+                                key={t} 
+                                onClick={() => setFilter(t)} 
+                                className={filter === t ? 'active-pill' : 'pill'}
+                            >
+                                {t}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            {/* Selection Info (Desktop only) */}
-            <div style={{marginBottom: '16px', fontSize: '13px', color: '#666', display: 'flex', alignItems: 'center', gap: '10px'}}>
-                <div onClick={toggleSelectAll} style={styles.checkbox}>
-                    {selectedIds.length === filteredWithdrawals.length ? <FiCheckSquare /> : <FiSquare />}
+            {/* Selection Meta Info */}
+            <div className="selection-info">
+                <div onClick={toggleSelectAll} className="checkbox-wrapper">
+                    {selectedIds.length === filteredWithdrawals.length && filteredWithdrawals.length > 0 ? <FiCheckSquare /> : <FiSquare />}
+                    <span>{selectedIds.length} items selected</span>
                 </div>
-                <span>{selectedIds.length} items selected</span>
             </div>
 
             {/* Data Grid */}
-            <div className="modern-grid-container">
+            <div className="grid-wrapper">
                 <table className="ultra-table">
                     <thead>
                         <tr>
-                            <th style={{width: '40px'}}></th>
+                            <th style={{width: '50px'}}>Select</th>
                             <th>Beneficiary</th>
                             <th>Amount</th>
-                            <th className="hide-mobile">Network Details</th>
+                            <th className="hide-mobile">Routing</th>
                             <th className="hide-tablet">Requested</th>
                             <th>Status</th>
-                            <th style={{textAlign: 'right'}}>Manual Override</th>
+                            <th style={{textAlign: 'right'}}>Override</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredWithdrawals.map(req => (
                             <tr key={req.id} className={selectedIds.includes(req.id) ? 'selected-row' : ''}>
-                                <td onClick={() => toggleSelectOne(req.id)} style={styles.checkbox}>
-                                    {selectedIds.includes(req.id) ? <FiCheckSquare /> : <FiSquare />}
+                                <td className="check-cell" onClick={() => toggleSelectOne(req.id)}>
+                                    {selectedIds.includes(req.id) ? <FiCheckSquare className="icon-active" /> : <FiSquare />}
                                 </td>
                                 <td data-label="Beneficiary">
-                                    <div style={{fontWeight: 700}}>{req.email}</div>
-                                    <div style={{fontSize: '11px', opacity: 0.6}}>{req.id.slice(0,8)}...</div>
+                                    <div className="user-email">{req.email}</div>
+                                    <div className="user-id">{req.id.slice(0,8)}...</div>
                                 </td>
-                                <td data-label="Amount" style={{fontFamily: 'JetBrains Mono, monospace', fontWeight: 800}}>
+                                <td data-label="Amount" className="amount-cell">
                                     ₦{req.amount.toLocaleString()}
                                 </td>
                                 <td data-label="Routing" className="hide-mobile">
-                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px'}}>
+                                    <div className="routing-info">
                                         <FiCreditCard /> {req.bankDetails?.bankName} (••{req.bankDetails?.accountNumber?.slice(-4)})
                                     </div>
                                 </td>
-                                <td data-label="Date" className="hide-tablet" style={{fontSize: '12px', color: '#888'}}>
+                                <td data-label="Date" className="hide-tablet date-cell">
                                     {new Date(req.createdAt.seconds * 1000).toLocaleDateString()}
                                 </td>
                                 <td data-label="Status">
                                     <span className={`status-badge ${req.status}`}>{req.status}</span>
                                 </td>
-                                <td data-label="Actions" style={{textAlign: 'right'}}>
+                                <td data-label="Actions" className="action-cell">
                                     {req.status === 'pending' && (
-                                        <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
+                                        <div className="action-group">
                                             <button onClick={() => processAction([req.id], 'approved')} className="icon-btn approve"><FiCheckCircle/></button>
                                             <button onClick={() => processAction([req.id], 'rejected')} className="icon-btn reject"><FiXCircle/></button>
                                         </div>
@@ -204,47 +154,224 @@ function WithdrawalManagement() {
             </div>
 
             {/* FLOATING BATCH BAR */}
-            <div style={styles.batchBar}>
-                <span style={{fontSize: '13px', fontWeight: 600, borderRight: '1px solid #444', paddingRight: '16px', marginRight: '8px'}}>
-                    {selectedIds.length} Selected
-                </span>
-                <button onClick={() => processAction(selectedIds, 'approved')} style={styles.batchBtn('#10b981')}><FiCheckCircle/> Approve</button>
-                <button onClick={() => processAction(selectedIds, 'rejected')} style={styles.batchBtn('#f59e0b')}><FiXCircle/> Reject</button>
-                <button onClick={() => processAction(selectedIds, 'deleted')} style={styles.batchBtn('#ef4444')}><FiTrash2/> Delete</button>
-                <button onClick={() => setSelectedIds([])} style={{background: 'transparent', border: 'none', color: '#888', cursor: 'pointer', fontSize: '12px'}}>Cancel</button>
+            <div className={`batch-bar ${selectedIds.length > 0 ? 'visible' : ''}`}>
+                <div className="batch-count">
+                    <strong>{selectedIds.length}</strong> <span>Selected</span>
+                </div>
+                <div className="batch-actions">
+                    <button onClick={() => processAction(selectedIds, 'approved')} className="b-btn b-approve"><FiCheckCircle/> <span className="hide-mobile">Approve</span></button>
+                    <button onClick={() => processAction(selectedIds, 'rejected')} className="b-btn b-reject"><FiXCircle/> <span className="hide-mobile">Reject</span></button>
+                    <button onClick={() => processAction(selectedIds, 'deleted')} className="b-btn b-delete"><FiTrash2/> <span className="hide-mobile">Delete</span></button>
+                    <button onClick={() => setSelectedIds([])} className="b-cancel">Cancel</button>
+                </div>
             </div>
 
             <style>
                 {`
-                    .modern-grid-container { width: 100%; overflow-x: auto; }
-                    .ultra-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                    .ultra-table th { text-align: left; padding: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #666; }
-                    .ultra-table td { padding: 20px 16px; border-bottom: 1px solid ${isDark ? '#111' : '#f9f9f9'}; transition: all 0.2s; }
-                    
-                    .selected-row td { background: ${isDark ? '#0A1A2F' : '#F0F7FF'} !important; }
-                    
-                    .pill, .active-pill { padding: 8px 16px; border: none; border-radius: 12px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.2s; }
-                    .pill { background: transparent; color: #888; }
-                    .active-pill { background: ${isDark ? '#333' : '#fff'}; color: ${isDark ? '#fff' : '#000'}; shadow: 0 4px 10px rgba(0,0,0,0.1); }
+                    .withdrawal-root {
+                        max-width: 1600px;
+                        margin: 0 auto;
+                        background: ${isDark ? '#000' : '#ffffff'};
+                        border-radius: 32px;
+                        padding: clamp(16px, 3vw, 40px);
+                        border: 1px solid ${isDark ? '#222' : '#f0f0f0'};
+                        min-height: 85vh;
+                        font-family: 'Inter', system-ui, sans-serif;
+                    }
 
-                    .status-badge { padding: 4px 10px; borderRadius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+                    /* Header Logic */
+                    .management-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 40px;
+                        gap: 20px;
+                    }
+
+                    .brand-badge {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #888;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        margin-bottom: 8px;
+                    }
+
+                    .management-header h1 {
+                        font-size: clamp(22px, 4vw, 34px);
+                        font-weight: 900;
+                        margin: 0;
+                        letter-spacing: -1.5px;
+                    }
+
+                    /* Filter Scroll for Mobile */
+                    .filter-scroll-container {
+                        overflow-x: auto;
+                        padding-bottom: 5px;
+                        -webkit-overflow-scrolling: touch;
+                    }
+                    .filter-pill-box {
+                        display: flex;
+                        background: ${isDark ? '#111' : '#f4f4f4'};
+                        padding: 4px;
+                        border-radius: 14px;
+                        white-space: nowrap;
+                    }
+
+                    .pill, .active-pill {
+                        padding: 8px 18px;
+                        border: none;
+                        border-radius: 11px;
+                        cursor: pointer;
+                        font-size: 13px;
+                        font-weight: 700;
+                        transition: 0.2s;
+                        text-transform: capitalize;
+                    }
+                    .pill { background: transparent; color: #888; }
+                    .active-pill { 
+                        background: ${isDark ? '#333' : '#fff'}; 
+                        color: ${isDark ? '#fff' : '#000'};
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    }
+
+                    .selection-info {
+                        margin-bottom: 16px;
+                        display: flex;
+                        align-items: center;
+                    }
+                    .checkbox-wrapper {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: #007AFF;
+                    }
+
+                    /* Table Refinement */
+                    .grid-wrapper { width: 100%; }
+                    .ultra-table { width: 100%; border-collapse: collapse; }
+                    .ultra-table th {
+                        text-align: left;
+                        padding: 16px;
+                        font-size: 11px;
+                        text-transform: uppercase;
+                        color: #666;
+                        border-bottom: 1px solid ${isDark ? '#222' : '#eee'};
+                    }
+                    .ultra-table td {
+                        padding: 18px 16px;
+                        border-bottom: 1px solid ${isDark ? '#111' : '#f9f9f9'};
+                    }
+
+                    .check-cell { font-size: 20px; color: #007AFF; cursor: pointer; width: 40px; }
+                    .user-email { font-weight: 700; font-size: 15px; }
+                    .user-id { font-size: 11px; opacity: 0.5; font-family: monospace; }
+                    .amount-cell { font-family: 'JetBrains Mono', monospace; font-weight: 800; color: ${isDark ? '#fff' : '#000'}; }
+                    .routing-info { display: flex; align-items: center; gap: 8px; font-size: 13px; opacity: 0.8; }
+                    .action-group { display: flex; gap: 12px; justify-content: flex-end; }
+
+                    .status-badge {
+                        padding: 5px 12px;
+                        border-radius: 8px;
+                        font-size: 10px;
+                        font-weight: 900;
+                        text-transform: uppercase;
+                    }
                     .status-badge.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
                     .status-badge.approved { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+                    .status-badge.rejected { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
-                    .icon-btn { background: none; border: none; cursor: pointer; font-size: 18px; transition: 0.2s; padding: 5px; }
+                    .icon-btn { background: none; border: none; cursor: pointer; font-size: 20px; transition: 0.2s; }
                     .icon-btn.approve { color: #10b981; }
                     .icon-btn.reject { color: #ef4444; }
-                    .icon-btn:hover { transform: scale(1.2); }
+                    .icon-btn:hover { transform: scale(1.2) translateY(-2px); }
 
-                    /* Responsive Shifting */
-                    @media (max-width: 1024px) { .hide-tablet { display: none; } }
+                    /* Floating Batch Bar */
+                    .batch-bar {
+                        position: fixed;
+                        bottom: 24px;
+                        left: 50%;
+                        transform: translate(-50%, 100px);
+                        background: ${isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.9)'};
+                        backdrop-filter: blur(20px);
+                        padding: 12px 24px;
+                        border-radius: 100px;
+                        display: flex;
+                        align-items: center;
+                        gap: 20px;
+                        z-index: 1000;
+                        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                        width: max-content;
+                        max-width: 95vw;
+                        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+                    }
+                    .batch-bar.visible { transform: translate(-50%, 0); }
+                    .batch-count { 
+                        color: ${isDark ? '#000' : '#fff'}; 
+                        border-right: 1px solid #555; 
+                        padding-right: 15px;
+                        font-size: 14px;
+                    }
+                    .batch-actions { display: flex; gap: 10px; align-items: center; }
+                    .b-btn { 
+                        border: none; padding: 8px 16px; border-radius: 50px; 
+                        color: #fff; font-weight: 700; cursor: pointer; 
+                        display: flex; align-items: center; gap: 8px; font-size: 12px;
+                    }
+                    .b-approve { background: #10b981; }
+                    .b-reject { background: #f59e0b; }
+                    .b-delete { background: #ef4444; }
+                    .b-cancel { background: transparent; border: none; color: #888; cursor: pointer; padding: 0 10px; }
+
+                    /* Responsiveness Matrix */
+                    @media (max-width: 1100px) {
+                        .hide-tablet { display: none; }
+                    }
+
                     @media (max-width: 768px) {
+                        .management-header { flex-direction: column; align-items: flex-start; }
+                        .filter-scroll-container { width: 100%; }
+                        
                         .hide-mobile { display: none; }
                         .ultra-table thead { display: none; }
-                        .ultra-table tr { display: block; border: 1px solid ${isDark ? '#222' : '#eee'}; border-radius: 20px; margin-bottom: 16px; padding: 10px; }
-                        .ultra-table td { display: flex; justify-content: space-between; border: none; padding: 8px 12px; }
-                        .ultra-table td::before { content: attr(data-label); font-weight: 800; color: #888; font-size: 10px; text-transform: uppercase; }
-                        .batch-bar { width: 90%; flex-wrap: wrap; justify-content: center; }
+                        
+                        .ultra-table tr { 
+                            display: block; 
+                            background: ${isDark ? '#080808' : '#fff'};
+                            border: 1px solid ${isDark ? '#1a1a1a' : '#eee'};
+                            border-radius: 24px;
+                            margin-bottom: 16px;
+                            padding: 12px;
+                        }
+
+                        .ultra-table td { 
+                            display: flex; 
+                            justify-content: space-between; 
+                            align-items: center; 
+                            border: none; 
+                            padding: 10px 12px; 
+                        }
+
+                        .ultra-table td::before { 
+                            content: attr(data-label); 
+                            font-weight: 800; 
+                            color: #888; 
+                            font-size: 10px; 
+                            text-transform: uppercase; 
+                        }
+
+                        .check-cell { order: -1; width: 100% !important; border-bottom: 1px solid ${isDark ? '#1a1a1a' : '#f0f0f0'} !important; margin-bottom: 8px; }
+                        .check-cell::before { content: "Select Record"; }
+
+                        .batch-bar { border-radius: 20px; width: 90vw; flex-direction: column; bottom: 10px; gap: 10px; padding: 16px; }
+                        .batch-count { border: none; padding: 0; }
+                        .batch-actions { flex-wrap: wrap; justify-content: center; }
                     }
                 `}
             </style>
