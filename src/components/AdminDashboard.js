@@ -4,42 +4,60 @@ import ProjectManagement from './ProjectManagement';
 import UserManagement from './UserManagement';
 import WithdrawalManagement from './WithdrawalManagement';
 import SystemActions from './SystemActions';
-import TransactionManagement from './TransactionManagement'; // Import the new component
-import { FiArrowLeft, FiBox, FiUsers, FiCreditCard, FiCpu, FiList,FiEdit  } from 'react-icons/fi'; // Import new icon
-import { useTheme } from '../context/ThemeContext';
+import TransactionManagement from './TransactionManagement';
 import ManualDepositManagement from './ManualDepositManagement';
+import { FiArrowLeft, FiBox, FiUsers, FiCreditCard, FiCpu, FiList, FiEdit } from 'react-icons/fi';
+import { useTheme } from '../context/ThemeContext';
+
 function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('projects');
-     const { theme } = useTheme();
-const logoSrc = theme === 'light' ? '/logo-light-theme.png' : '/logo-dark-theme.png'; // Choose logo based on theme
+    const { theme } = useTheme();
+    const logoSrc = theme === 'light' ? '/logo-light-theme.png' : '/logo-dark-theme.png';
+
     return (
-        <div className="page-container">
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    {/* --- LOGO ADDED HERE --- */}
-                    <img src={logoSrc} alt="Smart Farmer Logo" className="header-logo" />
-                    <div>
-                        <h1 style={{ margin: 0, fontWeight: 700 }}>Admin Panel</h1>
-                        <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)' }}>Manage your platform data.</p>
+        <div className="sv-page-container">
+            {/* Upgraded Responsive Header */}
+            <header className="sv-admin-header">
+                <div className="sv-header-brand">
+                    <img src={logoSrc} alt="Smart Farmer Logo" className="sv-header-logo" />
+                    <div className="sv-header-text">
+                        <h1>Admin Panel</h1>
+                        <p>Manage your platform data securely.</p>
                     </div>
                 </div>
-                <Link to="/dashboard" className="btn btn-secondary">
-                    <FiArrowLeft /> Back to User Dashboard
+                <Link to="/dashboard" className="sv-btn-back">
+                    <FiArrowLeft className="sv-icon" /> Back to Dashboard
                 </Link>
             </header>
             
-            <div className="card">
-                <div className="admin-tabs">
-                    <button className={`admin-tab-btn ${activeTab === 'projects' ? 'active' : ''}`} onClick={() => setActiveTab('projects')}><FiBox /> Project Management</button>
-                    <button className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}><FiUsers /> User Management</button>
-                    <button className={`admin-tab-btn ${activeTab === 'deposits' ? 'active' : ''}`} onClick={() => setActiveTab('deposits')}><FiEdit /> Manual Deposits</button>
-
-                    <button className={`admin-tab-btn ${activeTab === 'withdrawals' ? 'active' : ''}`} onClick={() => setActiveTab('withdrawals')}><FiCreditCard /> Withdrawal Management</button>
-                    <button className={`admin-tab-btn ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => setActiveTab('transactions')}><FiList /> Transaction Management</button>
-                    <button className={`admin-tab-btn ${activeTab === 'system' ? 'active' : ''}`} onClick={() => setActiveTab('system')}><FiCpu /> System Actions</button>
+            {/* Upgraded Dashboard Card */}
+            <div className="sv-dashboard-card">
+                {/* Scrollable Tabs for Mobile Compatibility */}
+                <div className="sv-tabs-wrapper">
+                    <div className="sv-admin-tabs">
+                        <button className={`sv-tab-btn ${activeTab === 'projects' ? 'active' : ''}`} onClick={() => setActiveTab('projects')}>
+                            <FiBox className="sv-icon" /> Projects
+                        </button>
+                        <button className={`sv-tab-btn ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>
+                            <FiUsers className="sv-icon" /> Users
+                        </button>
+                        <button className={`sv-tab-btn ${activeTab === 'deposits' ? 'active' : ''}`} onClick={() => setActiveTab('deposits')}>
+                            <FiEdit className="sv-icon" /> Deposits
+                        </button>
+                        <button className={`sv-tab-btn ${activeTab === 'withdrawals' ? 'active' : ''}`} onClick={() => setActiveTab('withdrawals')}>
+                            <FiCreditCard className="sv-icon" /> Withdrawals
+                        </button>
+                        <button className={`sv-tab-btn ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => setActiveTab('transactions')}>
+                            <FiList className="sv-icon" /> Transactions
+                        </button>
+                        <button className={`sv-tab-btn ${activeTab === 'system' ? 'active' : ''}`} onClick={() => setActiveTab('system')}>
+                            <FiCpu className="sv-icon" /> System
+                        </button>
+                    </div>
                 </div>
 
-                <div className="admin-tab-content">
+                {/* Tab Content Area */}
+                <div className="sv-tab-content">
                     {activeTab === 'projects' && <ProjectManagement />}
                     {activeTab === 'users' && <UserManagement />}
                     {activeTab === 'withdrawals' && <WithdrawalManagement />}
