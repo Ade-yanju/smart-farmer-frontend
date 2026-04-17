@@ -769,6 +769,7 @@ export default function LandingPage() {
               { ii:"FK", name:"Folake", role:"Lagos", q:"The algorithmic risk control gave me confidence to deploy a mid-six-figure sum. Yield has outpaced my fixed-income portfolio by 3× with zero correlation to broader markets." },
               { ii:"M", name:"Muhammed",      role:"Abuja",        q:"Finally, a protocol that touches grass. Real-world asset backing in agriculture is the missing primitive in modern finance. The dashboard transparency is unmatched." },
               { ii:"AK", name:"Akpan",       role:"Port Harcourt",  q:"Seamless deployment, transparent tracking, predictable maturity cycles. I route 10% of my startup treasury through SmartFarmer to hedge against fiat inflation." },
+               { ii:"JE", name:"Jessica",       role:"Ogun",  q:"Have been looking for a legit platform to invest in agriculture and earn back. Smartfarmer does not only fill this void, but champion my financial life." },
             ].map(({ ii, name, role, q }, i) => (
               <Reveal key={name} delay={i * 130}>
                 <div className="card" style={{ display:"flex", flexDirection:"column", height:"100%" }}
