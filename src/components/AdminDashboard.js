@@ -6,9 +6,10 @@ import WithdrawalManagement from './WithdrawalManagement';
 import SystemActions from './SystemActions';
 import TransactionManagement from './TransactionManagement';
 import ManualDepositManagement from './ManualDepositManagement';
-import { 
-    FiArrowLeft, FiBox, FiUsers, FiCreditCard, 
-    FiCpu, FiList, FiEdit, FiMenu, FiX 
+import AffiliateManagement from './AffiliateManagement';
+import {
+    FiArrowLeft, FiBox, FiUsers, FiCreditCard,
+    FiCpu, FiList, FiEdit, FiMenu, FiX, FiShare2
 } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
 
@@ -157,12 +158,13 @@ function AdminDashboard() {
     };
 
     const navItems = [
-        { id: 'projects', label: 'Projects', icon: <FiBox size={18} /> },
-        { id: 'users', label: 'Users', icon: <FiUsers size={18} /> },
-        { id: 'deposits', label: 'Manual Deposits', icon: <FiEdit size={18} /> },
-        { id: 'withdrawals', label: 'Withdrawals', icon: <FiCreditCard size={18} /> },
-        { id: 'transactions', label: 'Transactions', icon: <FiList size={18} /> },
-        { id: 'system', label: 'System', icon: <FiCpu size={18} /> },
+        { id: 'projects',    label: 'Projects',        icon: <FiBox size={18} />     },
+        { id: 'users',       label: 'Users',            icon: <FiUsers size={18} />   },
+        { id: 'deposits',    label: 'Manual Deposits',  icon: <FiEdit size={18} />    },
+        { id: 'withdrawals', label: 'Withdrawals',      icon: <FiCreditCard size={18} /> },
+        { id: 'transactions',label: 'Transactions',     icon: <FiList size={18} />    },
+        { id: 'affiliates',  label: 'Affiliates',       icon: <FiShare2 size={18} />  },
+        { id: 'system',      label: 'System',           icon: <FiCpu size={18} />     },
     ];
 
     return (
@@ -228,12 +230,13 @@ function AdminDashboard() {
                 </header>
 
                 <div style={styles.contentCard}>
-                    {activeTab === 'projects' && <ProjectManagement />}
-                    {activeTab === 'users' && <UserManagement />}
-                    {activeTab === 'withdrawals' && <WithdrawalManagement />}
-                    {activeTab === 'deposits' && <ManualDepositManagement />}
+                    {activeTab === 'projects'     && <ProjectManagement />}
+                    {activeTab === 'users'        && <UserManagement />}
+                    {activeTab === 'withdrawals'  && <WithdrawalManagement />}
+                    {activeTab === 'deposits'     && <ManualDepositManagement />}
                     {activeTab === 'transactions' && <TransactionManagement />}
-                    {activeTab === 'system' && <SystemActions />}
+                    {activeTab === 'affiliates'   && <AffiliateManagement />}
+                    {activeTab === 'system'       && <SystemActions />}
                 </div>
             </main>
 
