@@ -86,9 +86,7 @@ export default function Login() {
         
         <div style={{ zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', background: tokens.primary, borderRadius: '10px', display: 'grid', placeItems: 'center' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            </div>
+            <img src="/logo-dark-theme.png" alt="SmartFarmer" style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '10px' }} />
             <span style={{ fontWeight: 800, fontSize: '1.5rem', letterSpacing: '-0.05em' }}>SmartFarmer</span>
           </div>
         </div>

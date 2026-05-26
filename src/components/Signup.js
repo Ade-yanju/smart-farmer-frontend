@@ -201,9 +201,7 @@ export default function Signup() {
 // Sub-components for cleaner code
 const BrandLogo = ({ styles }) => (
   <Link to="/" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", color: "white" }}>
-    <div style={{ width: "36px", height: "36px", background: styles.primary, borderRadius: "8px", display: "grid", placeItems: "center" }}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-    </div>
+    <img src="/logo-dark-theme.png" alt="SmartFarmer" style={{ width: "40px", height: "40px", objectFit: "contain", borderRadius: "8px" }} />
     <span style={{ fontWeight: 800, fontSize: "1.25rem", letterSpacing: "-0.03em" }}>SmartFarmer</span>
   </Link>
 );

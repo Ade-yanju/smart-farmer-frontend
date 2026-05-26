@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { db } from "../firebase";
+import { collection, addDoc } from "firebase/firestore";
 
 /* ────────────────────────────────────────────────────────────
    GLOBAL STYLES
@@ -110,86 +112,40 @@ const GlobalStyles = () => (
 );
 
 /* ────────────────────────────────────────────────────────────
-   AI CHATBOT
+   SUPPORT WIDGET
 ──────────────────────────────────────────────────────────── */
-const SYS = `You are the SmartFarmer AI Assistant — a helpful, knowledgeable support agent for SmartFarmer, a Nigerian agricultural investment platform. Be warm, concise, and professional.
+function SupportWidget() {
+  const [open, setOpen]       = useState(false);
+  const [tab, setTab]         = useState('help');  // 'help' | 'contact'
+  const [form, setForm]       = useState({ name:'', email:'', message:'' });
+  const [sent, setSent]       = useState(false);
+  const [busy, setBusy]       = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
 
-PLATFORM KNOWLEDGE:
-• Minimum investment: ₦100,000 | No maximum (₦10M+ needs enterprise KYC)
-• Returns: 10–22% APY based on risk tranche
-  - Low: 10–14% APY → Maize, Rice (stable, government-backed offtake)
-  - Medium: 14–18% APY → Cassava (year-round, strong local demand)
-  - High: 18–22% APY → Soybean (export commodity, highest margins)
-• Cycle durations: 3, 6, or 9 months (chosen at investment time)
-• All investments 100% asset-backed (physical seeds, fertilizers, equipment)
-• 100% of deployments protected by parametric weather insurance
-• Zero management fees — investors keep 100% of returns
-• Payouts go directly to investor's Nigerian bank account at maturity
-• Capital locked for the full cycle — no early withdrawal supported
-• Platform is fiat-native (NGN/USD) — NOT crypto or DeFi
-• Blockchain used only for back-end audit trail / record keeping
-• KYC required (< 5 minutes); documents: government ID + BVN
-• SEC Nigeria & CBN regulated and compliant
+  const faqs = [
+    { q:"What's the minimum investment?",          a:"The minimum is ₦100,000. No upper cap — amounts above ₦10M require enterprise KYC (24–48 hrs)." },
+    { q:"When do I receive my returns?",            a:"At crop maturity your principal + yield are paid directly to your Nigerian bank account." },
+    { q:"Is my investment insured?",                a:"Yes — 100% of deployments are covered by parametric weather insurance. If crops fail due to weather, your principal is recovered automatically." },
+    { q:"Can I withdraw before the cycle ends?",   a:"No — capital is locked for your chosen cycle (3, 6, or 9 months). Funds are tied to physical, growing farm inputs." },
+    { q:"How long does KYC take?",                 a:"Under 5 minutes. You'll need a government-issued ID and your BVN." },
+    { q:"Is SmartFarmer a crypto platform?",       a:"No. SmartFarmer is fiat-native (NGN/USD), SEC-regulated, and deals strictly with real-world agricultural assets. Blockchain is used only for immutable record-keeping." },
+  ];
 
-HOW IT WORKS (4 steps):
-1. Sign up + complete KYC (< 5 mins)
-2. Fund SmartFarmer wallet via bank transfer
-3. Choose crop cycle, duration, and risk tranche
-4. At crop maturity, principal + yield paid directly to your bank
+  const channels = [
+    { label:"Telegram (Fastest)", href:"https://t.me/smartfarmerng",                          color:"#229ED9", bg:"rgba(34,158,217,.08)",  bdr:"rgba(34,158,217,.18)"  },
+    { label:"Instagram DM",       href:"https://www.instagram.com/smartfarmer_ng",            color:"#E1306C", bg:"rgba(225,48,108,.08)",   bdr:"rgba(225,48,108,.18)"  },
+    { label:"Email Support",      href:"mailto:support@smartfarmer.ng",                        color:"#10B981", bg:"rgba(16,185,129,.08)",   bdr:"rgba(16,185,129,.18)"  },
+  ];
 
-PLATFORM STATS:
-• Founded 2021; SmartFarmer V2 launched 2024; Lagos HQ; 18 Nigerian states
-• 2,400+ active investors | ₦4.8B total capital deployed
-• 2,000+ vetted farming cooperative partners | 97.3% maturity rate
-• Zero capital loss events since launch | 14.2% avg APY (last 90 days)
-
-CROPS: Maize (Apr–Oct, 12–15% APY, Low risk) | Cassava (Year-round, 15–18%, Medium) | Soybean (Jun–Dec, 18–22%, High) | Rice (May–Nov, 13–16%, Low)
-
-SAFETY: Physical asset backing + parametric weather insurance + cooperative liability agreements + satellite/IoT monitoring + on-chain audit logs
-
-RULES: Keep answers ≤150 words. Use ₦ for Naira. For legal/tax/personalised financial advice, refer to a licensed professional. Never guarantee returns — say "projected" or "historical average". If unsure, say so and offer to connect via support@smartfarmer.ng`;
-
-function ChatWidget() {
-  const [open, setOpen] = useState(false);
-  const [msgs, setMsgs] = useState([
-    { role: "assistant", content: "Hi there! 👋 I'm the SmartFarmer AI. Ask me anything — minimum investment, how returns work, crop cycles, insurance, or how to get started." }
-  ]);
-  const [input, setInput] = useState("");
-  const [busy, setBusy]   = useState(false);
-  const bot  = useRef(null);
-  const inp  = useRef(null);
-
-  useEffect(() => { if (open) setTimeout(() => inp.current?.focus(), 150); }, [open]);
-  useEffect(() => { bot.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
-
-  const send = useCallback(async (override) => {
-    const txt = (override ?? input).trim();
-    if (!txt || busy) return;
-    setInput("");
-    const next = [...msgs, { role: "user", content: txt }];
-    setMsgs(next);
+  const handleContact = async (e) => {
+    e.preventDefault();
     setBusy(true);
     try {
-      const r = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: SYS,
-          messages: next.map(m => ({ role: m.role, content: m.content }))
-        })
-      });
-      const d = await r.json();
-      const reply = d?.content?.map(b => b.text || "").join("") || "Sorry, I couldn't process that. Please try again.";
-      setMsgs(p => [...p, { role: "assistant", content: reply }]);
-    } catch {
-      setMsgs(p => [...p, { role: "assistant", content: "Connection error — please try again in a moment." }]);
-    } finally { setBusy(false); }
-  }, [input, busy, msgs]);
-
-  const onKey = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
-  const pills = ["What's the minimum?", "How does insurance work?", "When do I get paid?", "Is this regulated?"];
+      await addDoc(collection(db, "support_tickets"), { ...form, createdAt: new Date(), status: 'open' });
+      setSent(true);
+    } catch { /* silent fail */ }
+    finally { setBusy(false); }
+  };
 
   return (
     <>
@@ -197,76 +153,118 @@ function ChatWidget() {
         .cfab{position:fixed;bottom:2rem;right:2rem;z-index:210;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#10B981,#047857);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(16,185,129,.45);transition:transform .2s,box-shadow .2s}
         .cfab:hover{transform:scale(1.09);box-shadow:0 12px 36px rgba(16,185,129,.55)}
         .cfab:active{transform:scale(.95)}
-        .cunread{position:absolute;top:2px;right:2px;width:13px;height:13px;border-radius:50%;background:#EF4444;border:2px solid var(--bg);animation:pulse-r 2s infinite}
-        .cpanel{position:fixed;bottom:6.5rem;right:2rem;z-index:205;width:min(400px,calc(100vw - 2rem));height:min(570px,calc(100dvh - 9rem));background:#0C0C0C;border:1px solid rgba(16,185,129,.22);border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.75);transform-origin:bottom right;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s}
+        .cunread{position:absolute;top:2px;right:2px;width:13px;height:13px;border-radius:50%;background:#EF4444;border:2px solid #050505;animation:pulse-r 2s infinite}
+        .cpanel{position:fixed;bottom:6.5rem;right:2rem;z-index:205;width:min(420px,calc(100vw - 2rem));height:min(590px,calc(100dvh - 9rem));background:#0C0C0C;border:1px solid rgba(16,185,129,.22);border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.75);transform-origin:bottom right;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s}
         .cpanel.closed{transform:scale(.82) translateY(16px);opacity:0;pointer-events:none}
         .chdr{padding:1rem 1.25rem;background:rgba(16,185,129,.07);border-bottom:1px solid rgba(16,185,129,.13);display:flex;align-items:center;gap:.75rem;flex-shrink:0}
-        .cavatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#10B981,#047857);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .cmsgs{flex:1;overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:.75rem;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent}
-        .cbub{max-width:86%;padding:.75rem 1rem;border-radius:16px;font-size:.875rem;line-height:1.6;animation:popIn .22s ease;word-break:break-word}
-        .cai{background:rgba(255,255,255,.07);color:#E0E0E0;border-radius:16px 16px 16px 4px;align-self:flex-start}
-        .cusr{background:#10B981;color:#000;font-weight:600;border-radius:16px 16px 4px 16px;align-self:flex-end}
-        .ctyp{display:flex;gap:5px;align-items:center;padding:.75rem 1rem}
-        .cdot{width:6px;height:6px;border-radius:50%;background:#10B981;animation:blink 1.2s ease infinite}
-        .cdot:nth-child(2){animation-delay:.2s}.cdot:nth-child(3){animation-delay:.4s}
-        .cpills{padding:0 1.25rem .75rem;display:flex;flex-wrap:wrap;gap:.4rem;flex-shrink:0}
-        .cpill{padding:.3rem .7rem;border-radius:100px;cursor:pointer;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);color:#10B981;font-size:.72rem;font-weight:600;white-space:nowrap;transition:background .15s,border-color .15s;font-family:var(--fb)}
-        .cpill:hover{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4)}
-        .cfoot{padding:.875rem 1.25rem;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:.625rem;align-items:flex-end;flex-shrink:0;background:rgba(0,0,0,.25)}
-        .cinp{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:white;padding:.625rem .875rem;font-size:.875rem;resize:none;outline:none;min-height:42px;max-height:110px;font-family:var(--fb);transition:border-color .2s}
-        .cinp:focus{border-color:rgba(16,185,129,.45)}
-        .cinp::placeholder{color:rgba(255,255,255,.28)}
-        .csend{width:42px;height:42px;border-radius:11px;flex-shrink:0;background:#10B981;border:none;cursor:pointer;color:#000;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s}
-        .csend:hover{background:#34D399}
-        .csend:active{transform:scale(.93)}
-        .csend:disabled{background:rgba(255,255,255,.1);cursor:not-allowed}
+        .ctabs{display:flex;padding:.625rem 1.25rem .5rem;gap:.5rem;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)}
+        .ctab{flex:1;padding:.525rem;border-radius:8px;border:none;cursor:pointer;font-size:.78rem;font-weight:700;transition:all .2s;font-family:var(--fb);letter-spacing:.01em}
+        .ctab.act{background:rgba(16,185,129,.12);color:#10B981;border:1px solid rgba(16,185,129,.25)}
+        .ctab.inact{background:transparent;color:rgba(255,255,255,.35);border:1px solid transparent}
+        .ctab.inact:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.65)}
+        .cbody{flex:1;overflow-y:auto;padding:1rem 1.25rem;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent}
+        .cfaq-item{border-bottom:1px solid rgba(255,255,255,.06);padding:.75rem 0}
+        .cfaq-btn{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:none;color:#fff;font-size:.82rem;font-weight:600;cursor:pointer;text-align:left;padding:0;gap:.75rem;font-family:var(--fb)}
+        .cfaq-ans{font-size:.79rem;color:rgba(255,255,255,.48);line-height:1.65;padding-top:.5rem;margin:0}
+        .cinp-sm{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:white;font-size:.875rem;font-family:var(--fb);outline:none;transition:border-color .2s;margin-bottom:.75rem;display:block;box-sizing:border-box}
+        .cinp-sm:focus{border-color:rgba(16,185,129,.45)}
+        .cinp-sm::placeholder{color:rgba(255,255,255,.28)}
+        .ctarea{resize:vertical;min-height:82px}
         .cclose{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:1.35rem;line-height:1;padding:2px}
         .cclose:hover{color:white}
+        .csend-btn{width:100%;padding:.875rem;background:#10B981;color:#000;border:none;border-radius:10px;font-weight:700;font-size:.875rem;cursor:pointer;transition:background .15s;font-family:var(--fb);letter-spacing:.01em}
+        .csend-btn:hover:not(:disabled){background:#34D399}
+        .csend-btn:disabled{opacity:.5;cursor:not-allowed}
         @media(max-width:768px){
           .cpanel{right:0!important;bottom:0!important;width:100vw!important;height:100dvh!important;border-radius:0!important}
-          .cfab{bottom:1.25rem!important;right:1.25rem!important}
+          .cfab{bottom:5.5rem!important;right:1.25rem!important}
         }
       `}</style>
 
-      <button className="cfab" onClick={() => setOpen(o => !o)} title="Ask SmartFarmer AI">
+      {/* Floating trigger button */}
+      <button className="cfab" onClick={() => setOpen(o => !o)} title="Support Center">
         {open
           ? <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#000" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           : <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#000" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>}
         {!open && <span className="cunread" />}
       </button>
 
-      <div className={`cpanel${open ? "" : " closed"}`} role="dialog" aria-label="SmartFarmer AI Chat">
+      <div className={`cpanel${open ? "" : " closed"}`} role="dialog" aria-label="Support Center">
+        {/* Header */}
         <div className="chdr">
-          <div className="cavatar"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: ".875rem", color: "#fff" }}>SmartFarmer AI</div>
-            <div style={{ fontSize: ".7rem", color: "#10B981", display: "flex", alignItems: "center", gap: ".3rem" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
-              Online · Instant responses
+          <div style={{ width:38, height:38, borderRadius:"50%", background:"linear-gradient(135deg,#10B981,#047857)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          </div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontWeight:700, fontSize:".875rem", color:"#fff" }}>Support Center</div>
+            <div style={{ fontSize:".7rem", color:"#10B981", display:"flex", alignItems:"center", gap:".3rem" }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#10B981", display:"inline-block" }} />
+              Online · Quick answers
             </div>
           </div>
           <button className="cclose" onClick={() => setOpen(false)} aria-label="Close">×</button>
         </div>
 
-        <div className="cmsgs">
-          {msgs.map((m, i) => (
-            <div key={i} className={`cbub ${m.role === "assistant" ? "cai" : "cusr"}`}>{m.content}</div>
-          ))}
-          {busy && <div className="cbub cai ctyp"><span className="cdot"/><span className="cdot"/><span className="cdot"/></div>}
-          <div ref={bot} />
+        {/* Tabs */}
+        <div className="ctabs">
+          <button className={`ctab ${tab==='help'?'act':'inact'}`} onClick={()=>setTab('help')}>Quick Help</button>
+          <button className={`ctab ${tab==='contact'?'act':'inact'}`} onClick={()=>setTab('contact')}>Contact Us</button>
         </div>
 
-        {msgs.length <= 2 && (
-          <div className="cpills">
-            {pills.map(p => <button key={p} className="cpill" onClick={() => send(p)}>{p}</button>)}
-          </div>
-        )}
+        {/* Body */}
+        <div className="cbody">
+          {tab === 'help' ? (
+            <>
+              <p style={{ fontSize:".73rem", color:"rgba(255,255,255,.32)", margin:"0 0 .875rem" }}>Common questions — tap any to expand</p>
+              {faqs.map((f, i) => (
+                <div key={i} className="cfaq-item">
+                  <button className="cfaq-btn" onClick={()=>setOpenFaq(openFaq===i ? null : i)}>
+                    <span>{f.q}</span>
+                    <span style={{ transform:openFaq===i?"rotate(45deg)":"none", transition:"transform .22s", color:"#10B981", fontSize:"1.3rem", fontWeight:300, flexShrink:0, lineHeight:1 }}>+</span>
+                  </button>
+                  {openFaq === i && <p className="cfaq-ans">{f.a}</p>}
+                </div>
+              ))}
 
-        <div className="cfoot">
-          <textarea ref={inp} className="cinp" value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} placeholder="Ask anything about SmartFarmer…" rows={1} />
-          <button className="csend" onClick={() => send()} disabled={!input.trim() || busy} aria-label="Send">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-          </button>
+              <div style={{ marginTop:"1.25rem", padding:"1rem", background:"rgba(16,185,129,.05)", border:"1px solid rgba(16,185,129,.12)", borderRadius:12 }}>
+                <div style={{ fontWeight:700, color:"#fff", fontSize:".83rem", marginBottom:".375rem" }}>Still need help?</div>
+                <p style={{ margin:"0 0 .875rem", fontSize:".74rem", color:"rgba(255,255,255,.38)" }}>Reach us directly on any channel below.</p>
+                {channels.map(c => (
+                  <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer"
+                    style={{ display:"block", padding:".6rem .875rem", borderRadius:8, marginBottom:".4rem", background:c.bg, color:c.color, fontSize:".79rem", fontWeight:700, textDecoration:"none", border:`1px solid ${c.bdr}`, transition:"opacity .15s" }}
+                    onMouseOver={e=>e.currentTarget.style.opacity=".75"} onMouseOut={e=>e.currentTarget.style.opacity="1"}>
+                    {c.label} →
+                  </a>
+                ))}
+              </div>
+            </>
+          ) : (
+            sent ? (
+              <div style={{ textAlign:"center", padding:"2.5rem 1rem" }}>
+                <div style={{ fontSize:"2.75rem", marginBottom:"1rem" }}>✅</div>
+                <div style={{ fontWeight:700, color:"#fff", marginBottom:".5rem", fontSize:".95rem" }}>Message Received!</div>
+                <p style={{ color:"rgba(255,255,255,.38)", fontSize:".82rem", lineHeight:1.65 }}>
+                  We'll respond within 24 hours. For the fastest reply, reach us on Telegram.
+                </p>
+                <a href="https://t.me/smartfarmerng" target="_blank" rel="noopener noreferrer"
+                  style={{ display:"inline-block", marginTop:"1.25rem", padding:".65rem 1.4rem", background:"#229ED9", color:"#fff", borderRadius:9, fontWeight:700, fontSize:".82rem", textDecoration:"none" }}>
+                  Open Telegram →
+                </a>
+              </div>
+            ) : (
+              <form onSubmit={handleContact}>
+                <p style={{ fontSize:".76rem", color:"rgba(255,255,255,.35)", margin:"0 0 1rem" }}>Send a message — we'll get back within 24 hours.</p>
+                <input className="cinp-sm" required value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} placeholder="Your name" />
+                <input className="cinp-sm" type="email" required value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} placeholder="Email address" />
+                <textarea className="cinp-sm ctarea" required value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} placeholder="How can we help you?" />
+                <button type="submit" disabled={busy} className="csend-btn">{busy?"Sending…":"Send Message"}</button>
+                <div style={{ marginTop:".875rem", textAlign:"center", fontSize:".71rem", color:"rgba(255,255,255,.25)" }}>
+                  For instant replies, chat us on{" "}
+                  <a href="https://t.me/smartfarmerng" target="_blank" rel="noopener noreferrer" style={{ color:"#229ED9", textDecoration:"none" }}>Telegram</a>
+                </div>
+              </form>
+            )
+          )}
         </div>
       </div>
     </>
@@ -451,6 +449,157 @@ function Reveal({ children, delay = 0, style = {} }) {
 }
 
 /* ────────────────────────────────────────────────────────────
+   AFFILIATE SECTION
+──────────────────────────────────────────────────────────── */
+function AffiliateSection() {
+  const [form, setForm]         = useState({ name:'', email:'', phone:'', platform:'', message:'' });
+  const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending]   = useState(false);
+  const [error, setError]       = useState('');
+
+  const handle = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setError('');
+    try {
+      await addDoc(collection(db, "affiliate_applications"), {
+        ...form,
+        createdAt: new Date(),
+        status: 'pending'
+      });
+      setSubmitted(true);
+    } catch {
+      setError('Submission failed — please try again or email us at partners@smartfarmer.ng');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const perks = [
+    { icon:"💰", title:"Earn 5% Commission",    desc:"Get 5% of every investment made by your referred users, paid monthly." },
+    { icon:"📊", title:"Live Tracking Dashboard", desc:"Monitor clicks, sign-ups, and earnings in real time from your portal." },
+    { icon:"⚡", title:"Fast Bank Payouts",      desc:"Commissions paid directly to your Nigerian bank account — no delays." },
+    { icon:"🎯", title:"Free Marketing Kit",     desc:"Branded graphics, referral links, and copy to maximise conversions." },
+  ];
+
+  return (
+    <section id="affiliate" className="sec" style={{ borderTop:"1px solid var(--border)", background:"var(--bg)" }}>
+      <div className="wrap">
+        <div className="col2" style={{ alignItems:"flex-start", gap:"3.5rem" }}>
+
+          {/* LEFT — Info */}
+          <Reveal>
+            <div>
+              <div className="eyebrow"><span>◆</span> Partner Program</div>
+              <h2 className="h2" style={{ marginBottom:"1rem" }}>Become a SmartFarmer Affiliate.</h2>
+              <p style={{ marginBottom:"2rem", color:"var(--muted)", maxWidth:460 }}>
+                Earn real commissions by introducing investors to Nigeria's leading agricultural yield platform.
+                No cap — the more you refer, the more you earn.
+              </p>
+
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem", marginBottom:"2rem" }}>
+                {perks.map((p, i) => (
+                  <Reveal key={p.title} delay={i * 70}>
+                    <div style={{ background:"rgba(16,185,129,.04)", border:"1px solid rgba(16,185,129,.1)", borderRadius:14, padding:"1.25rem", height:"100%" }}>
+                      <div style={{ fontSize:"1.55rem", marginBottom:".5rem" }}>{p.icon}</div>
+                      <div style={{ fontWeight:700, color:"#fff", marginBottom:".25rem", fontSize:".88rem" }}>{p.title}</div>
+                      <p style={{ margin:0, fontSize:".78rem", color:"var(--muted)", lineHeight:1.65 }}>{p.desc}</p>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+
+              {/* Social proof strip */}
+              <div style={{ display:"flex", gap:"1.5rem", flexWrap:"wrap" }}>
+                {[["₦2.4M+","Paid to affiliates"],["340+","Active partners"],["5%","Commission rate"]].map(([v,l]) => (
+                  <div key={l}>
+                    <div style={{ fontFamily:"var(--fm)", fontSize:"1.2rem", fontWeight:800, color:"var(--green)" }}>{v}</div>
+                    <div style={{ fontSize:".73rem", color:"var(--muted)", marginTop:".1rem" }}>{l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+
+          {/* RIGHT — Form */}
+          <Reveal delay={150}>
+            {submitted ? (
+              <div className="card" style={{ textAlign:"center", padding:"3rem 2rem" }}>
+                <div style={{ fontSize:"3.5rem", marginBottom:"1.25rem" }}>🌱</div>
+                <h3 style={{ color:"var(--green)", marginBottom:".5rem", fontFamily:"var(--fd)", fontSize:"1.5rem" }}>Application Received!</h3>
+                <p style={{ color:"var(--muted)", lineHeight:1.7 }}>
+                  Thank you! Our partnerships team will review your application and reach out within <strong style={{ color:"#fff" }}>2–3 business days</strong>.
+                  In the meantime, follow us on social media.
+                </p>
+                <div style={{ display:"flex", gap:".75rem", justifyContent:"center", marginTop:"1.5rem", flexWrap:"wrap" }}>
+                  <a href="https://t.me/smartfarmerng" target="_blank" rel="noopener noreferrer" className="btn btn-p" style={{ padding:".6rem 1.25rem", fontSize:".83rem" }}>Join Telegram →</a>
+                  <a href="https://www.instagram.com/smartfarmer_ng" target="_blank" rel="noopener noreferrer" className="btn btn-s" style={{ padding:".6rem 1.25rem", fontSize:".83rem" }}>Follow on Instagram</a>
+                </div>
+              </div>
+            ) : (
+              <div className="card card-shine">
+                <div style={{ marginBottom:"1.5rem" }}>
+                  <div style={{ fontWeight:800, fontSize:"1.1rem", color:"#fff", marginBottom:".3rem" }}>Apply to Partner</div>
+                  <p style={{ margin:0, fontSize:".83rem", color:"var(--muted)" }}>Fill in the form and we'll be in touch within 48 hours.</p>
+                </div>
+
+                {error && (
+                  <div style={{ background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.2)", borderRadius:8, padding:".875rem", color:"#FCA5A5", fontSize:".82rem", marginBottom:"1rem" }}>
+                    {error}
+                  </div>
+                )}
+
+                <form onSubmit={handle}>
+                  <div style={{ marginBottom:"1rem" }}>
+                    <label className="lbl">Full Name *</label>
+                    <input className="field" required value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} placeholder="Your full name" />
+                  </div>
+                  <div style={{ marginBottom:"1rem" }}>
+                    <label className="lbl">Email Address *</label>
+                    <input className="field" type="email" required value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} placeholder="you@email.com" />
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem", marginBottom:"1rem" }}>
+                    <div>
+                      <label className="lbl">Phone Number</label>
+                      <input className="field" type="tel" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} placeholder="+234 ..." />
+                    </div>
+                    <div>
+                      <label className="lbl">Main Platform</label>
+                      <select className="field" value={form.platform} onChange={e=>setForm(p=>({...p,platform:e.target.value}))} style={{ cursor:"pointer", appearance:"none" }}>
+                        <option value="">Select…</option>
+                        <option>Instagram</option>
+                        <option>X / Twitter</option>
+                        <option>TikTok</option>
+                        <option>YouTube</option>
+                        <option>Telegram</option>
+                        <option>WhatsApp</option>
+                        <option>Blog / Website</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom:"1.5rem" }}>
+                    <label className="lbl">How will you promote SmartFarmer?</label>
+                    <textarea className="field" rows={3} value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} placeholder="Tell us about your audience and your promotion strategy…" style={{ resize:"vertical", minHeight:88 }} />
+                  </div>
+                  <button type="submit" disabled={sending} className="btn btn-p" style={{ width:"100%", padding:"1rem", justifyContent:"center", fontSize:".95rem" }}>
+                    {sending ? "Submitting…" : "Apply Now →"}
+                  </button>
+                  <p style={{ textAlign:"center", marginTop:".875rem", fontSize:".73rem", color:"var(--muted)" }}>
+                    Questions? Email <a href="mailto:partners@smartfarmer.ng" style={{ color:"var(--green)", textDecoration:"none" }}>partners@smartfarmer.ng</a>
+                  </p>
+                </form>
+              </div>
+            )}
+          </Reveal>
+
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
    MAIN PAGE
 ──────────────────────────────────────────────────────────── */
 export default function LandingPage() {
@@ -476,7 +625,7 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  const navLinks = [["How It Works","#how"],["Crop Cycles","#crops"],["Yield Terminal","#estimator"],["FAQ","#faq"]];
+  const navLinks = [["How It Works","#how"],["Crop Cycles","#crops"],["Yield Terminal","#estimator"],["FAQ","#faq"],["Affiliate","#affiliate"]];
   const faqs = [
     { q:"How is the 14.2% APY generated?",          a:"Returns come from actual commodity profit margins. Your capital buys raw inputs (seeds, fertiliser) at wholesale. When the crop matures and sells to pre-vetted off-takers, the profit distributes directly to your bank account." },
     { q:"What is the minimum investment?",           a:"The minimum is ₦100,000. There is no upper cap — investments above ₦10,000,000 require our enhanced enterprise KYC, which takes 24–48 hours." },
@@ -491,8 +640,15 @@ export default function LandingPage() {
       <GlobalStyles />
 
       {/* ── Banner ── */}
-      <div style={{ background:"linear-gradient(90deg,#059669,#10B981,#34D399)", color:"#000", fontSize:".74rem", fontWeight:700, textAlign:"center", padding:".5rem 1rem", letterSpacing:".03em" }}>
-        🌱 SmartFarmer V2 is live — Institutional-grade agricultural yield, now for everyone →
+      <div style={{ background:"linear-gradient(90deg,#059669,#10B981,#34D399)", color:"#000", fontSize:".74rem", fontWeight:700, textAlign:"center", padding:".5rem 1rem", letterSpacing:".03em", display:"flex", alignItems:"center", justifyContent:"center", gap:"1.25rem", flexWrap:"wrap" }}>
+        <span>🌱 SmartFarmer V2 is live — Institutional-grade agricultural yield, now for everyone</span>
+        <span style={{ display:"flex", gap:".6rem", alignItems:"center" }}>
+          <a href="https://x.com/smartfarmer_ng" target="_blank" rel="noopener noreferrer" style={{ color:"#000", textDecoration:"none", fontWeight:800, opacity:.75, fontSize:".7rem" }}>𝕏 Twitter</a>
+          <span style={{ opacity:.4 }}>·</span>
+          <a href="https://www.instagram.com/smartfarmer_ng" target="_blank" rel="noopener noreferrer" style={{ color:"#000", textDecoration:"none", fontWeight:800, opacity:.75, fontSize:".7rem" }}>Instagram</a>
+          <span style={{ opacity:.4 }}>·</span>
+          <a href="https://t.me/smartfarmerng" target="_blank" rel="noopener noreferrer" style={{ color:"#000", textDecoration:"none", fontWeight:800, opacity:.75, fontSize:".7rem" }}>Telegram</a>
+        </span>
       </div>
 
       <Ticker />
@@ -501,9 +657,7 @@ export default function LandingPage() {
       <header className="nav-glass">
         <div className="wrap nav-inner">
           <a href="/" style={{ display:"flex", alignItems:"center", gap:".6rem", color:"inherit", flexShrink:0 }}>
-            <div style={{ width:34, height:34, borderRadius:9, background:"linear-gradient(135deg,#10B981,#059669)", display:"grid", placeItems:"center", color:"#000" }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            </div>
+            <img src="/logo-dark-theme.png" alt="SmartFarmer" style={{ height:38, width:38, objectFit:"contain", borderRadius:8 }} />
             <span style={{ fontFamily:"var(--fd)", fontWeight:800, fontSize:"1.05rem", letterSpacing:"-.03em" }}>SmartFarmer</span>
           </a>
 
@@ -809,9 +963,9 @@ export default function LandingPage() {
                     </div>
                     <span style={{ fontWeight:700, color:"#fff", fontSize:".9rem" }}>Still have questions?</span>
                   </div>
-                  <p style={{ marginBottom:"1rem", color:"var(--muted)", fontSize:".85rem" }}>Chat with our AI — available 24/7 to answer any question about the platform.</p>
+                  <p style={{ marginBottom:"1rem", color:"var(--muted)", fontSize:".85rem" }}>Our support team is available on Telegram, Instagram, and email — or send us a quick message here.</p>
                   <button className="btn btn-p" style={{ fontSize:".85rem", padding:".6rem 1.25rem" }} onClick={()=>document.querySelector(".cfab")?.click()}>
-                    Open AI Chat →
+                    Chat with Support →
                   </button>
                 </div>
               </div>
@@ -822,6 +976,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Affiliate Program ── */}
+      <AffiliateSection />
 
       {/* ── CTA ── */}
       <section style={{ borderTop:"1px solid var(--border)", padding:"5.5rem 0", position:"relative", overflow:"hidden" }}>
@@ -847,28 +1004,50 @@ export default function LandingPage() {
           <div className="ft-grid" style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr", gap:"3rem", marginBottom:"3rem" }}>
             <div>
               <div style={{ display:"flex", alignItems:"center", gap:".5rem", marginBottom:"1rem" }}>
-                <div style={{ width:26, height:26, borderRadius:6, background:"linear-gradient(135deg,#10B981,#059669)", flexShrink:0 }}/>
+                <img src="/logo-dark-theme.png" alt="SmartFarmer" style={{ height:30, width:30, objectFit:"contain", borderRadius:6 }} />
                 <span style={{ fontFamily:"var(--fd)", fontWeight:800, fontSize:"1.05rem" }}>SmartFarmer</span>
               </div>
-              <p style={{ marginBottom:"1.5rem", maxWidth:250, lineHeight:1.7, color:"var(--muted)", fontSize:".875rem" }}>Bridging global liquidity with verified agricultural assets. Institutional-grade returns from real-world production.</p>
-              <div style={{ display:"flex", gap:".875rem" }}>
-                {[<svg key="tw" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>,
-                <svg key="li" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>].map((ic, i) => (
-                  <a key={i} href="#" style={{ color:"rgba(255,255,255,.28)", transition:"color .2s", display:"flex" }}
-                    onMouseOver={e=>e.currentTarget.style.color="#fff"} onMouseOut={e=>e.currentTarget.style.color="rgba(255,255,255,.28)"}>{ic}</a>
-                ))}
+              <p style={{ marginBottom:"1.5rem", maxWidth:250, lineHeight:1.7, color:"var(--muted)", fontSize:".875rem" }}>Bridging Nigerian capital with verified agricultural assets. Institutional-grade returns from real-world production.</p>
+              {/* Social Links */}
+              <div style={{ display:"flex", gap:".75rem", flexWrap:"wrap" }}>
+                {/* X / Twitter */}
+                <a href="https://x.com/smartfarmer_ng" target="_blank" rel="noopener noreferrer"
+                  title="X / Twitter"
+                  style={{ color:"rgba(255,255,255,.28)", transition:"color .2s", display:"flex", alignItems:"center", justifyContent:"center", width:34, height:34, borderRadius:8, border:"1px solid rgba(255,255,255,.1)", background:"rgba(255,255,255,.04)" }}
+                  onMouseOver={e=>{e.currentTarget.style.color="#fff";e.currentTarget.style.borderColor="rgba(255,255,255,.25)";e.currentTarget.style.background="rgba(255,255,255,.08)"}}
+                  onMouseOut={e=>{e.currentTarget.style.color="rgba(255,255,255,.28)";e.currentTarget.style.borderColor="rgba(255,255,255,.1)";e.currentTarget.style.background="rgba(255,255,255,.04)"}}>
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.73-8.835L1.254 2.25H8.08l4.258 5.639 5.906-5.639zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+                </a>
+                {/* Instagram */}
+                <a href="https://www.instagram.com/smartfarmer_ng?igsh=enEwc2ZwYnZkZmUy" target="_blank" rel="noopener noreferrer"
+                  title="Instagram"
+                  style={{ color:"rgba(255,255,255,.28)", transition:"color .2s", display:"flex", alignItems:"center", justifyContent:"center", width:34, height:34, borderRadius:8, border:"1px solid rgba(255,255,255,.1)", background:"rgba(255,255,255,.04)" }}
+                  onMouseOver={e=>{e.currentTarget.style.color="#E1306C";e.currentTarget.style.borderColor="rgba(225,48,108,.3)";e.currentTarget.style.background="rgba(225,48,108,.08)"}}
+                  onMouseOut={e=>{e.currentTarget.style.color="rgba(255,255,255,.28)";e.currentTarget.style.borderColor="rgba(255,255,255,.1)";e.currentTarget.style.background="rgba(255,255,255,.04)"}}>
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                </a>
+                {/* Telegram */}
+                <a href="https://t.me/smartfarmerng" target="_blank" rel="noopener noreferrer"
+                  title="Telegram"
+                  style={{ color:"rgba(255,255,255,.28)", transition:"color .2s", display:"flex", alignItems:"center", justifyContent:"center", width:34, height:34, borderRadius:8, border:"1px solid rgba(255,255,255,.1)", background:"rgba(255,255,255,.04)" }}
+                  onMouseOver={e=>{e.currentTarget.style.color="#229ED9";e.currentTarget.style.borderColor="rgba(34,158,217,.3)";e.currentTarget.style.background="rgba(34,158,217,.08)"}}
+                  onMouseOut={e=>{e.currentTarget.style.color="rgba(255,255,255,.28)";e.currentTarget.style.borderColor="rgba(255,255,255,.1)";e.currentTarget.style.background="rgba(255,255,255,.04)"}}>
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                </a>
               </div>
             </div>
             {[
-              { title:"Protocol", links:[["Infrastructure","#infrastructure"],["Crop Cycles","#crops"],["Yield Terminal","#estimator"],["Documentation","/docs"]] },
-              { title:"Company",  links:[["About Us","/about"],["Careers","/careers"],["Blog","/blog"],["Contact","/contact"]] },
-              { title:"Legal",    links:[["Terms of Service","/terms"],["Privacy Policy","/privacy"],["KYC / AML","/kyc"],["SEC Compliance","/compliance"]] },
+              { title:"Platform", links:[["How It Works","#how"],["Crop Cycles","#crops"],["Yield Terminal","#estimator"],["Affiliate Program","#affiliate"]] },
+              { title:"Company",  links:[["About Us","/about"],["Blog","/blog"],["Contact","/contact"],["Partner With Us","#affiliate"]] },
+              { title:"Connect",  links:[["X / Twitter","https://x.com/smartfarmer_ng"],["Instagram","https://www.instagram.com/smartfarmer_ng"],["Telegram","https://t.me/smartfarmerng"],["Email","mailto:support@smartfarmer.ng"]] },
             ].map(({ title, links }) => (
               <div key={title}>
                 <h4 style={{ color:"#fff", marginBottom:"1rem", fontSize:".68rem", textTransform:"uppercase", letterSpacing:".08em", fontWeight:700 }}>{title}</h4>
                 <div style={{ display:"flex", flexDirection:"column", gap:".6rem" }}>
                   {links.map(([l,h])=>(
                     <a key={l} href={h} style={{ color:"rgba(255,255,255,.32)", fontSize:".85rem", transition:"color .2s" }}
+                      target={h.startsWith('http')||h.startsWith('mailto')?'_blank':undefined}
+                      rel={h.startsWith('http')?"noopener noreferrer":undefined}
                       onMouseOver={e=>e.target.style.color="#fff"} onMouseOut={e=>e.target.style.color="rgba(255,255,255,.32)"}>{l}</a>
                   ))}
                 </div>
@@ -893,7 +1072,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <ChatWidget />
+      <SupportWidget />
     </>
   );
 }
