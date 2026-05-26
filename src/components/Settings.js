@@ -7,7 +7,8 @@ import NotificationsSettings from './NotificationsSettings';
 import WithdrawalSettings from './WithdrawalSettings';
 import DeleteAccount from './DeleteAccount';
 import Referrals from './Referrals';
-import { FiUser, FiShield, FiEye, FiBell, FiCreditCard, FiTrash2, FiGift, FiArrowLeft, FiChevronRight } from 'react-icons/fi';
+import AffiliateStatus from './AffiliateStatus';
+import { FiUser, FiShield, FiEye, FiBell, FiCreditCard, FiTrash2, FiGift, FiArrowLeft, FiChevronRight, FiShare2 } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
 
 function Settings({ userData, refreshUserData }) {
@@ -26,13 +27,14 @@ function Settings({ userData, refreshUserData }) {
     const isMobile = width < 992;
 
     const menuItems = [
-        { id: 'profile', label: 'Edit Profile', icon: <FiUser /> },
-        { id: 'security', label: 'Security', icon: <FiShield /> },
-        { id: 'appearance', label: 'Appearance', icon: <FiEye /> },
-        { id: 'notifications', label: 'Notifications', icon: <FiBell /> },
-        { id: 'withdrawals', label: 'Withdrawals', icon: <FiCreditCard /> },
-        { id: 'referrals', label: 'Referrals', icon: <FiGift /> },
-        { id: 'deleteAccount', label: 'Delete Account', icon: <FiTrash2 />, isDanger: true },
+        { id: 'profile',      label: 'Edit Profile',  icon: <FiUser />     },
+        { id: 'security',     label: 'Security',       icon: <FiShield />   },
+        { id: 'appearance',   label: 'Appearance',     icon: <FiEye />      },
+        { id: 'notifications',label: 'Notifications',  icon: <FiBell />     },
+        { id: 'withdrawals',  label: 'Withdrawals',    icon: <FiCreditCard /> },
+        { id: 'referrals',    label: 'Referrals',      icon: <FiGift />     },
+        { id: 'affiliate',    label: 'Affiliate',      icon: <FiShare2 />,  isBadge: true },
+        { id: 'deleteAccount',label: 'Delete Account', icon: <FiTrash2 />,  isDanger: true },
     ];
 
     // --- 2026 PREMIUM UI TOKENS ---
@@ -91,25 +93,25 @@ function Settings({ userData, refreshUserData }) {
             padding: isMobile ? '4px' : '0',
             scrollbarWidth: 'none',
         },
-        navBtn: (isActive, isDanger) => ({
+        navBtn: (isActive, isDanger, isBadge) => ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: isMobile ? 'center' : 'space-between',
             gap: '12px',
             padding: '14px 18px',
             borderRadius: '14px',
-            border: 'none',
+            border: isBadge && !isActive ? '1px solid rgba(16,185,129,.25)' : 'none',
             cursor: 'pointer',
             fontSize: '15px',
             fontWeight: '600',
             whiteSpace: 'nowrap',
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            backgroundColor: isActive 
-                ? (isDark ? '#FFFFFF' : '#000000') 
-                : 'transparent',
-            color: isActive 
-                ? (isDark ? '#000000' : '#FFFFFF') 
-                : (isDanger ? '#EF4444' : (isDark ? '#A1A1AA' : '#6B7280')),
+            backgroundColor: isActive
+                ? (isDark ? '#FFFFFF' : '#000000')
+                : (isBadge ? 'rgba(16,185,129,.06)' : 'transparent'),
+            color: isActive
+                ? (isDark ? '#000000' : '#FFFFFF')
+                : (isDanger ? '#EF4444' : (isBadge ? '#10B981' : (isDark ? '#A1A1AA' : '#6B7280'))),
         }),
         contentCard: {
             backgroundColor: isDark ? '#0F0F0F' : '#FFFFFF',
@@ -128,7 +130,8 @@ function Settings({ userData, refreshUserData }) {
             case 'appearance': return <AppearanceSettings />;
             case 'notifications': return <NotificationsSettings />;
             case 'withdrawals': return <WithdrawalSettings />;
-            case 'referrals': return <Referrals userData={userData} />;
+            case 'referrals':    return <Referrals userData={userData} />;
+            case 'affiliate':    return <AffiliateStatus userData={userData} />;
             case 'deleteAccount': return <DeleteAccount />;
             default: return <EditProfile refreshUserData={refreshUserData} />;
         }
@@ -161,13 +164,16 @@ function Settings({ userData, refreshUserData }) {
                     {/* SIDE NAVIGATION */}
                     <aside style={styles.navCard}>
                         {menuItems.map(item => (
-                            <button 
-                                key={item.id} 
-                                style={styles.navBtn(activeTab === item.id, item.isDanger)}
+                            <button
+                                key={item.id}
+                                style={styles.navBtn(activeTab === item.id, item.isDanger, item.isBadge)}
                                 onClick={() => setActiveTab(item.id)}
                             >
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     {item.icon} {item.label}
+                                    {item.isBadge && activeTab !== item.id && (
+                                        <span style={{ fontSize:10, fontWeight:800, padding:'1px 6px', borderRadius:100, background:'rgba(16,185,129,.15)', color:'#10B981', letterSpacing:'.04em' }}>NEW</span>
+                                    )}
                                 </span>
                                 {!isMobile && <FiChevronRight opacity={activeTab === item.id ? 1 : 0.3} />}
                             </button>

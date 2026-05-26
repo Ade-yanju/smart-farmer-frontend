@@ -483,18 +483,47 @@ function AffiliateSection() {
   ];
 
   return (
-    <section id="affiliate" className="sec" style={{ borderTop:"1px solid var(--border)", background:"var(--bg)" }}>
+    <section id="affiliate" style={{ borderTop:"1px solid var(--border)", background:"var(--bg)" }}>
+
+      {/* ── Full-width banner header ── */}
+      <div style={{ position:"relative", overflow:"hidden", background:"linear-gradient(135deg,#0A1F14 0%,#051009 50%,#0A0A0A 100%)", borderBottom:"1px solid rgba(16,185,129,.15)", padding:"clamp(3rem,7vw,5rem) 0" }}>
+        <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:"80vw", maxWidth:900, height:300, background:"radial-gradient(ellipse,rgba(16,185,129,.08) 0%,transparent 70%)", pointerEvents:"none" }} />
+        <div className="wrap" style={{ position:"relative", zIndex:1, textAlign:"center" }}>
+          <Reveal>
+            <div className="eyebrow" style={{ justifyContent:"center", marginBottom:"1rem" }}>
+              <span style={{ width:7, height:7, borderRadius:"50%", background:"var(--green)", animation:"pulse-g 2s infinite" }} />
+              Partner Program · Now Open
+            </div>
+            <h2 className="h2" style={{ marginBottom:"1rem", maxWidth:700, margin:"0 auto 1rem" }}>
+              Get paid to grow Nigeria's agri-investment ecosystem.
+            </h2>
+            <p style={{ maxWidth:540, margin:"0 auto 2rem", color:"var(--muted)", fontSize:"1.05rem" }}>
+              Refer investors to SmartFarmer and earn 5% commission on every investment they make — paid monthly, directly to your bank account. No cap.
+            </p>
+            {/* Stats strip */}
+            <div style={{ display:"inline-flex", gap:"2rem", flexWrap:"wrap", justifyContent:"center", padding:"1rem 2rem", background:"rgba(16,185,129,.05)", border:"1px solid rgba(16,185,129,.12)", borderRadius:100 }}>
+              {[["₦2.4M+","Paid out"],["340+","Partners"],["5%","Commission"],["2–3 days","Review time"]].map(([v,l]) => (
+                <div key={l} style={{ textAlign:"center" }}>
+                  <div style={{ fontFamily:"var(--fm)", fontWeight:800, fontSize:"1.05rem", color:"var(--green)" }}>{v}</div>
+                  <div style={{ fontSize:".7rem", color:"var(--muted)", marginTop:".1rem" }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </div>
+
+      <div className="sec">
       <div className="wrap">
         <div className="col2" style={{ alignItems:"flex-start", gap:"3.5rem" }}>
 
           {/* LEFT — Info */}
           <Reveal>
             <div>
-              <div className="eyebrow"><span>◆</span> Partner Program</div>
-              <h2 className="h2" style={{ marginBottom:"1rem" }}>Become a SmartFarmer Affiliate.</h2>
+              <div className="eyebrow"><span>◆</span> Why Join?</div>
+              <h2 className="h2" style={{ marginBottom:"1rem", fontSize:"clamp(1.3rem,3vw,2rem)" }}>Everything you need to earn as an affiliate.</h2>
               <p style={{ marginBottom:"2rem", color:"var(--muted)", maxWidth:460 }}>
-                Earn real commissions by introducing investors to Nigeria's leading agricultural yield platform.
-                No cap — the more you refer, the more you earn.
+                From a free marketing kit to real-time tracking and fast bank payouts — we give you all the tools to succeed.
               </p>
 
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem", marginBottom:"2rem" }}>
@@ -529,9 +558,19 @@ function AffiliateSection() {
                 <h3 style={{ color:"var(--green)", marginBottom:".5rem", fontFamily:"var(--fd)", fontSize:"1.5rem" }}>Application Received!</h3>
                 <p style={{ color:"var(--muted)", lineHeight:1.7 }}>
                   Thank you! Our partnerships team will review your application and reach out within <strong style={{ color:"#fff" }}>2–3 business days</strong>.
-                  In the meantime, follow us on social media.
                 </p>
-                <div style={{ display:"flex", gap:".75rem", justifyContent:"center", marginTop:"1.5rem", flexWrap:"wrap" }}>
+                {/* Track status CTA */}
+                <div style={{ margin:"1.25rem 0", padding:".875rem 1.25rem", background:"rgba(16,185,129,.06)", border:"1px solid rgba(16,185,129,.15)", borderRadius:12, textAlign:"left" }}>
+                  <div style={{ fontWeight:700, color:"#fff", fontSize:".85rem", marginBottom:".3rem" }}>📊 Track your application</div>
+                  <p style={{ margin:"0 0 .75rem", color:"var(--muted)", fontSize:".78rem", lineHeight:1.6 }}>
+                    Create a SmartFarmer account (or log in) and go to <strong style={{ color:"var(--green)" }}>Settings → Affiliate</strong> to see your real-time status and — once approved — get your unique referral link.
+                  </p>
+                  <div style={{ display:"flex", gap:".6rem", flexWrap:"wrap" }}>
+                    <a href="/signup" className="btn btn-p" style={{ padding:".5rem 1.1rem", fontSize:".8rem" }}>Create Account →</a>
+                    <a href="/login"  className="btn btn-s" style={{ padding:".5rem 1.1rem", fontSize:".8rem" }}>Log In</a>
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:".75rem", justifyContent:"center", flexWrap:"wrap" }}>
                   <a href="https://t.me/smartfarmerng" target="_blank" rel="noopener noreferrer" className="btn btn-p" style={{ padding:".6rem 1.25rem", fontSize:".83rem" }}>Join Telegram →</a>
                   <a href="https://www.instagram.com/smartfarmer_ng" target="_blank" rel="noopener noreferrer" className="btn btn-s" style={{ padding:".6rem 1.25rem", fontSize:".83rem" }}>Follow on Instagram</a>
                 </div>
@@ -595,6 +634,7 @@ function AffiliateSection() {
 
         </div>
       </div>
+      </div>{/* /.sec */}
     </section>
   );
 }
@@ -662,7 +702,15 @@ export default function LandingPage() {
           </a>
 
           <nav className="nav-desk" style={{ display:"flex", gap:"2rem", alignItems:"center" }}>
-            {navLinks.map(([l, h]) => (
+            {navLinks.map(([l, h]) => l === 'Affiliate' ? (
+              <a key={l} href={h}
+                style={{ display:"inline-flex", alignItems:"center", gap:".35rem", padding:".32rem .875rem", borderRadius:"var(--rfull)", background:"rgba(16,185,129,.1)", color:"var(--green)", border:"1px solid rgba(16,185,129,.25)", fontSize:".82rem", fontWeight:700, transition:"background .2s" }}
+                onMouseOver={e=>e.currentTarget.style.background="rgba(16,185,129,.18)"}
+                onMouseOut={e=>e.currentTarget.style.background="rgba(16,185,129,.1)"}>
+                <span style={{ width:6, height:6, borderRadius:"50%", background:"var(--green)", flexShrink:0 }} />
+                {l}
+              </a>
+            ) : (
               <a key={l} href={h} style={{ color:"var(--muted)", fontSize:".875rem", fontWeight:500, transition:"color .2s" }}
                 onMouseOver={e => e.target.style.color="#fff"} onMouseOut={e => e.target.style.color="var(--muted)"}>{l}</a>
             ))}
