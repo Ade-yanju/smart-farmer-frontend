@@ -86,32 +86,34 @@ function Dashboard({ userData }) {
     }, [currentUser]);
 
     const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    const isMobile = windowWidth < 768;
+    const isMobile  = windowWidth < 768;
+    const isSmall   = windowWidth < 400;
 
     // Premium Styles Object (maintained from previous version)
     const styles = {
         page: {
-            padding: isMobile ? '16px' : '40px 24px',
-            maxWidth: '1280px',
-            margin: '0 auto',
+            padding:         isSmall ? '12px' : isMobile ? '16px' : '40px 24px',
+            maxWidth:        '1280px',
+            margin:          '0 auto',
             backgroundColor: isDark ? '#050505' : '#fcfcfd',
-            minHeight: '100vh',
-            color: isDark ? '#ffffff' : '#000000',
-            fontFamily: "'Inter', sans-serif",
+            minHeight:       '100vh',
+            paddingBottom:   isMobile ? '90px' : '40px',   /* clear fixed nav bar */
+            color:           isDark ? '#ffffff' : '#000000',
+            fontFamily:      "'Inter', sans-serif",
         },
         header: {
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: isMobile ? '24px' : '48px',
+            display:       'flex',
+            justifyContent:'space-between',
+            alignItems:    'center',
+            marginBottom:  isMobile ? '20px' : '48px',
             flexDirection: isMobile ? 'column' : 'row',
-            gap: '20px'
+            gap:           '16px',
         },
         greetingBox: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            width: isMobile ? '100%' : 'auto'
+            display:   'flex',
+            alignItems:'center',
+            gap:       '12px',
+            width:     isMobile ? '100%' : 'auto',
         },
         bentoCard: {
             backgroundColor: isDark ? '#121212' : '#ffffff',
@@ -123,11 +125,12 @@ function Dashboard({ userData }) {
             overflow: 'hidden'
         },
         balanceValue: {
-            fontSize: isMobile ? '32px' : '48px',
-            fontWeight: '800',
-            letterSpacing: '-2px',
-            margin: '8px 0',
-            color: '#10b981'
+            fontSize:      isSmall ? '24px' : isMobile ? '30px' : '48px',
+            fontWeight:    '800',
+            letterSpacing: isSmall ? '-0.5px' : '-2px',
+            margin:        '8px 0',
+            color:         '#10b981',
+            wordBreak:     'break-all',
         },
         btnPrimary: {
             padding: '14px 28px',
@@ -171,21 +174,24 @@ function Dashboard({ userData }) {
                 <div style={styles.greetingBox}>
                     <img src={logoSrc} alt="Logo" style={{ height: '52px', width: '52px', objectFit: 'contain' }} />
                     <div>
-                        <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '26px', fontWeight: 800 }}>
-                            Hi, {userData?.username || 'Farmer'}
+                        <h1 style={{ margin:0, fontSize: isSmall ? '17px' : isMobile ? '20px' : '26px', fontWeight:800 }}>
+                            Hi, {userData?.username || 'Farmer'} 👋
                         </h1>
                         <p style={{ margin: 0, color: '#666', fontSize: '14px', fontWeight: 500 }}>Portfolio Snapshot</p>
                     </div>
                 </div>
                 
-                <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto' }}>
+                <div style={{ display:'flex', gap:'8px', width:isMobile?'100%':'auto', flexWrap:'wrap' }}>
                     {userData?.role === 'admin' && (
-                        <Link to="/admin" style={styles.actionButton}><FiGrid /> Admin</Link>
+                        <Link to="/admin" style={{ ...styles.actionButton, flex: isMobile ? 1 : 'none' }}>
+                            <FiGrid /> Admin
+                        </Link>
                     )}
-                    <Link to="/settings" style={styles.actionButton}><FiSettings /></Link>
-                    {/* Logout Button updated to trigger internal handleLogout */}
-                    <button onClick={handleLogout} style={{ ...styles.actionButton, color: '#ff4d4d' }}>
-                        <FiLogOut /> Logout
+                    <Link to="/settings" style={{ ...styles.actionButton, flex: isMobile ? 1 : 'none' }}>
+                        <FiSettings /> {isMobile ? 'Settings' : ''}
+                    </Link>
+                    <button onClick={handleLogout} style={{ ...styles.actionButton, color:'#EF4444', flex:isMobile?1:'none' }}>
+                        <FiLogOut /> {isMobile ? 'Logout' : ''}
                     </button>
                 </div>
             </header>
@@ -259,10 +265,10 @@ function Dashboard({ userData }) {
                     </div>
                 </div>
 
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', 
-                    gap: '24px' 
+                <div style={{
+                    display:             'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))',
+                    gap:                 isSmall ? '16px' : '24px',
                 }}>
                     {filteredProjects.map(project => (
                         <Link to={`/project/${project.id}`} key={project.id} style={{ textDecoration: 'none' }}>

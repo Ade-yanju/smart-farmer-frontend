@@ -6,6 +6,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { useTheme } from "../context/ThemeContext";
 
 export default function Signup() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [referralCode, setReferralCode] = useState("");
@@ -26,6 +27,7 @@ export default function Signup() {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    if (!fullName.trim()) { setError("Please enter your full name."); return; }
     setLoading(true);
     setError("");
     try {
@@ -35,6 +37,7 @@ export default function Signup() {
 
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
+        username: fullName.trim(),
         createdAt: new Date(),
         walletBalance: 0,
         role: "user",
@@ -54,20 +57,21 @@ export default function Signup() {
     <div style={{ display: "flex", minHeight: "100vh", background: styles.bg, color: "white", fontFamily: "Inter, sans-serif" }}>
       <style>{`
         /* Desktop & Tablet Hide Logic */
-        @media (max-width: 1024px) {
-          .left-panel { display: none !important; }
-          .mobile-header { display: flex !important; }
+        @media (max-width: 860px) {
+          .left-panel     { display: none !important; }
+          .mobile-header  { display: flex !important; }
+          .form-wrapper   { padding: 2rem 1.5rem !important; }
+        }
+
+        /* Extra small phones */
+        @media (max-width: 400px) {
+          .form-wrapper   { padding: 1.5rem 1rem !important; }
+          .su-h1          { font-size: 1.75rem !important; }
         }
 
         /* Input Focus & Hover States */
-        .auth-input:focus { border-color: ${styles.primary} !important; box-shadow: 0 0 0 1px ${styles.primary} !important; outline: none; }
+        .auth-input:focus { border-color: ${styles.primary} !important; box-shadow: 0 0 0 2px rgba(16,185,129,0.2) !important; outline: none; }
         .social-btn:hover { background: rgba(255,255,255,0.05) !important; border-color: rgba(255,255,255,0.2) !important; }
-        
-        /* Mobile Specific Padding */
-        @media (max-width: 480px) {
-          .form-wrapper { padding: 1.5rem !important; }
-          h1 { fontSize: 1.75rem !important; }
-        }
       `}</style>
 
       {/* Left Side: Brand (Hidden on Mobile/Tablet) */}
@@ -108,7 +112,7 @@ export default function Signup() {
           </div>
 
           <Reveal>
-            <h1 style={{ fontSize: "2.25rem", fontWeight: 700, marginBottom: "0.5rem", letterSpacing: "-0.02em" }}>Create account</h1>
+            <h1 className="su-h1" style={{ fontSize: "2.25rem", fontWeight: 700, marginBottom: "0.5rem", letterSpacing: "-0.02em" }}>Create account</h1>
             <p style={{ color: styles.textMuted, marginBottom: "2.5rem" }}>Initialize your farmer-investor profile.</p>
 
             {error && (
@@ -119,13 +123,27 @@ export default function Signup() {
 
             <form onSubmit={handleSignup}>
               <div style={{ marginBottom: "1.25rem" }}>
-                <label style={labelStyle(styles)}>Email Address</label>
-                <input 
-                  type="email" 
+                <label style={labelStyle(styles)}>Full Name</label>
+                <input
+                  type="text"
                   className="auth-input"
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  style={inputStyle(styles)}
+                  placeholder="John Doe"
+                  autoComplete="name"
+                />
+              </div>
+
+              <div style={{ marginBottom: "1.25rem" }}>
+                <label style={labelStyle(styles)}>Email Address</label>
+                <input
+                  type="email"
+                  className="auth-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                   style={inputStyle(styles)}
                   placeholder="name@company.com"
                 />

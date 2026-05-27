@@ -26,6 +26,7 @@ function AddMoneyManually() {
     }, []);
 
     const isMobile = screenSize < 768;
+    const isSmall  = screenSize < 400;
 
     const companyAccounts = [
         { bankName: "Opay", accountNumber: "6423280528", accountName: "Smart Farmer Systems" }
@@ -65,14 +66,15 @@ function AddMoneyManually() {
 
     const styles = {
         page: {
-            minHeight: '100vh',
-            padding: isMobile ? '20px' : '60px 20px',
+            minHeight:       '100vh',
+            padding:         isSmall ? '12px' : isMobile ? '16px 14px' : '60px 20px',
+            paddingBottom:   isMobile ? '100px' : '60px',
             backgroundColor: isDark ? '#020202' : '#F8FAFC',
-            fontFamily: "'Inter', sans-serif",
-            color: isDark ? '#fff' : '#1e293b',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
+            fontFamily:      "'Inter', sans-serif",
+            color:           isDark ? '#fff' : '#1e293b',
+            display:         'flex',
+            flexDirection:   'column',
+            alignItems:      'center',
         },
         container: {
             width: '100%',
@@ -97,19 +99,19 @@ function AddMoneyManually() {
             marginBottom: '10px'
         },
         grid: {
-            display: 'grid',
+            display:             'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 1.2fr',
-            gap: '24px'
+            gap:                 isSmall ? '16px' : '24px',
         },
         bentoCard: {
-            background: isDark ? 'rgba(15, 15, 15, 0.7)' : '#ffffff',
+            background:     isDark ? 'rgba(15,15,15,0.7)' : '#ffffff',
             backdropFilter: 'blur(12px)',
-            borderRadius: '24px',
-            padding: isMobile ? '24px' : '40px',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
-            boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.03)',
-            position: 'relative',
-            overflow: 'hidden'
+            borderRadius:   '20px',
+            padding:        isSmall ? '16px' : isMobile ? '22px' : '40px',
+            border:         `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
+            boxShadow:      isDark ? '0 20px 40px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.03)',
+            position:       'relative',
+            overflow:       'hidden',
         },
         stepBadge: {
             display: 'inline-block',
@@ -205,7 +207,7 @@ function AddMoneyManually() {
                     <Link to="/dashboard" style={styles.backBtn}>
                         <FiArrowLeft /> Back to Dashboard
                     </Link>
-                    <h1 style={{ fontSize: isMobile ? '32px' : '48px', fontWeight: '900', letterSpacing: '-2px', margin: '10px 0' }}>
+                    <h1 style={{ fontSize: isSmall ? '24px' : isMobile ? '30px' : '48px', fontWeight: '900', letterSpacing: '-1.5px', margin: '10px 0' }}>
                         Refill Wallet
                     </h1>
                     <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto' }}>

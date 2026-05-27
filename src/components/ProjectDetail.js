@@ -78,6 +78,7 @@ function ProjectDetail() {
     }, []);
 
     const isMobile = windowWidth < 768;
+    const isSmall  = windowWidth < 400;
     const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
     useEffect(() => {
@@ -161,11 +162,12 @@ function ProjectDetail() {
     // --- DESIGN TOKENS ---
     const styles = {
         page: {
-            minHeight: '100vh',
-            padding: isMobile ? '20px' : '40px',
+            minHeight:       '100vh',
+            padding:         isSmall ? '12px' : isMobile ? '16px' : '40px',
+            paddingBottom:   isMobile ? '100px' : '40px',
             backgroundColor: isDark ? '#020202' : '#F8FAFC',
-            fontFamily: "'Inter', sans-serif",
-            color: isDark ? '#fff' : '#1e293b',
+            fontFamily:      "'Inter', sans-serif",
+            color:           isDark ? '#fff' : '#1e293b',
         },
         container: {
             maxWidth: '1200px',
@@ -191,10 +193,11 @@ function ProjectDetail() {
             marginBottom: '10px'
         },
         title: {
-            fontSize: isMobile ? '28px' : '40px',
-            fontWeight: '800',
+            fontSize:      isSmall ? '22px' : isMobile ? '28px' : '40px',
+            fontWeight:    '800',
             letterSpacing: '-1px',
-            margin: '10px 0'
+            margin:        '10px 0',
+            wordBreak:     'break-word',
         },
         description: {
             color: '#64748b',
@@ -218,20 +221,20 @@ function ProjectDetail() {
             gap: '8px'
         },
         statsGrid: {
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-            gap: '16px',
-            marginBottom: '30px'
+            display:             'grid',
+            gridTemplateColumns: isSmall ? '1fr' : 'repeat(2, 1fr)',
+            gap:                 isSmall ? '10px' : '16px',
+            marginBottom:        '24px',
         },
         card: {
-            background: isDark ? 'rgba(15, 15, 15, 0.7)' : '#ffffff',
-            backdropFilter: 'blur(12px)',
-            borderRadius: '24px',
-            padding: isMobile ? '24px' : '32px',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
-            boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.03)',
-            position: 'sticky',
-            top: '20px'
+            background:      isDark ? 'rgba(15,15,15,0.7)' : '#ffffff',
+            backdropFilter:  'blur(12px)',
+            borderRadius:    '24px',
+            padding:         isSmall ? '18px' : isMobile ? '24px' : '32px',
+            border:          `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
+            boxShadow:       isDark ? '0 20px 40px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.03)',
+            position:        isMobile ? 'static' : 'sticky',   /* no sticky on mobile */
+            top:             '20px',
         },
         progressBarContainer: {
             height: '12px',

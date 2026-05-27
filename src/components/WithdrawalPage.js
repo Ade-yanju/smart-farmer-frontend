@@ -69,18 +69,20 @@ function WithdrawalPage({ userData }) {
     };
 
     const isMobile = width <= 768;
+    const isSmall  = width <= 400;
 
     // --- 2026 PREMIUM DESIGN SYSTEM ---
     const styles = {
         container: {
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: isMobile ? '20px' : '60px 20px',
+            minHeight:       '100vh',
+            display:         'flex',
+            flexDirection:   'column',
+            alignItems:      'center',
+            padding:         isSmall ? '16px 12px' : isMobile ? '20px 16px' : '60px 20px',
+            paddingBottom:   isMobile ? '100px' : '60px',
             backgroundColor: isDark ? '#050505' : '#F9FAFB',
-            fontFamily: "'Inter', -apple-system, sans-serif",
-            transition: 'all 0.3s ease'
+            fontFamily:      "'Inter', -apple-system, sans-serif",
+            transition:      'all 0.3s ease',
         },
         header: {
             textAlign: 'center',
@@ -92,13 +94,13 @@ function WithdrawalPage({ userData }) {
             filter: isDark ? 'drop-shadow(0 0 8px rgba(255,255,255,0.1))' : 'none'
         },
         bentoCard: {
-            width: '100%',
-            maxWidth: '480px',
+            width:           '100%',
+            maxWidth:        '480px',
             backgroundColor: isDark ? '#111111' : '#FFFFFF',
-            borderRadius: '24px',
-            padding: isMobile ? '24px' : '40px',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
-            boxShadow: isDark ? '0 25px 50px -12px rgba(0,0,0,0.5)' : '0 10px 30px -5px rgba(0,0,0,0.03)',
+            borderRadius:    '24px',
+            padding:         isSmall ? '18px' : isMobile ? '24px' : '40px',
+            border:          `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
+            boxShadow:       isDark ? '0 25px 50px -12px rgba(0,0,0,0.5)' : '0 10px 30px -5px rgba(0,0,0,0.03)',
         },
         balanceBox: {
             backgroundColor: isDark ? 'rgba(16, 185, 129, 0.05)' : '#F0FDF4',
@@ -196,12 +198,12 @@ function WithdrawalPage({ userData }) {
         <div style={styles.container}>
             <header style={styles.header}>
                 <img src={logoSrc} alt="Logo" style={styles.logo} />
-                <h1 style={{ 
-                    fontSize: isMobile ? '24px' : '32px', 
-                    fontWeight: '800', 
-                    color: isDark ? '#FFF' : '#111',
-                    margin: 0,
-                    letterSpacing: '-1px'
+                <h1 style={{
+                    fontSize:      isSmall ? '20px' : isMobile ? '24px' : '32px',
+                    fontWeight:    '800',
+                    color:         isDark ? '#FFF' : '#111',
+                    margin:        0,
+                    letterSpacing: '-1px',
                 }}>
                     Withdraw Capital
                 </h1>

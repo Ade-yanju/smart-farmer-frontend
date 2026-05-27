@@ -55,7 +55,10 @@ export default function AffiliateStatus({ userData }) {
     if (userData || currentUser) {
       setForm(f => ({
         ...f,
-        name:  userData?.firstName
+        // Support both username (new) and firstName/lastName (legacy)
+        name: userData?.username
+          ? userData.username
+          : userData?.firstName
           ? `${userData.firstName} ${userData.lastName || ''}`.trim()
           : f.name,
         email: currentUser?.email  || f.email,
@@ -94,6 +97,13 @@ export default function AffiliateStatus({ userData }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setShareErr('');
+
+    // Guard: must be authenticated
+    if (!currentUser) {
+      setShareErr('You must be logged in to apply. Please refresh and try again.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const ref = await addDoc(collection(db, 'affiliate_applications'), {
@@ -105,7 +115,17 @@ export default function AffiliateStatus({ userData }) {
       setApp({ id: ref.id, ...form, userId: currentUser.uid, status:'pending', createdAt: new Date() });
       showModal('Application submitted! We\'ll review it within 2–3 business days.');
     } catch (err) {
-      setShareErr('Submission failed — please try again.');
+      console.error('Affiliate submit error:', err.code, err.message);
+      // Translate Firebase error codes into user-friendly messages
+      let msg = 'Submission failed — please try again.';
+      if (err.code === 'permission-denied') {
+        msg = 'Permission denied. Please log out, log back in, and try again.';
+      } else if (err.code === 'unavailable' || err.code === 'network-request-failed') {
+        msg = 'Network error — check your connection and try again.';
+      } else if (err.message) {
+        msg = `Submission failed: ${err.message}`;
+      }
+      setShareErr(msg);
     } finally {
       setSubmitting(false);
     }

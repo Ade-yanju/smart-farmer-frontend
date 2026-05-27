@@ -69,6 +69,7 @@ function InvestPage() {
     }, [currentUser]);
 
     const isMobile = windowWidth < 768;
+    const isSmall  = windowWidth < 400;
     const filteredProjects = (activeTab === 'all' ? allProjects : myInvestments).filter(project =>
         project?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -76,27 +77,28 @@ function InvestPage() {
     // --- 2026 DESIGN TOKENS ---
     const styles = {
         page: {
-            padding: isMobile ? '16px' : '40px 24px',
-            maxWidth: '1200px',
-            margin: '0 auto',
+            padding:         isSmall ? '12px' : isMobile ? '16px' : '40px 24px',
+            paddingBottom:   isMobile ? '90px' : '40px',
+            maxWidth:        '1200px',
+            margin:          '0 auto',
             backgroundColor: isDark ? '#050505' : '#fcfcfd',
-            minHeight: '100vh',
-            fontFamily: "'Inter', sans-serif"
+            minHeight:       '100vh',
+            fontFamily:      "'Inter', sans-serif",
         },
         header: {
-            display: 'flex',
-            alignItems: 'center',
+            display:        'flex',
+            alignItems:     'center',
             justifyContent: 'space-between',
-            marginBottom: '40px',
-            flexWrap: 'wrap',
-            gap: '20px'
+            marginBottom:   isMobile ? '20px' : '40px',
+            flexWrap:       'wrap',
+            gap:            '12px',
         },
         tabContainer: {
-            display: 'flex',
+            display:         'flex',
             backgroundColor: isDark ? '#111' : '#f1f1f4',
-            padding: '4px',
-            borderRadius: '16px',
-            width: isMobile ? '100%' : 'fit-content'
+            padding:         '4px',
+            borderRadius:    '16px',
+            width:           isMobile ? '100%' : 'fit-content',
         },
         tabBtn: (active) => ({
             padding: '10px 20px',
@@ -112,7 +114,7 @@ function InvestPage() {
         }),
         searchWrapper: {
             position: 'relative',
-            width: isMobile ? '100%' : '300px'
+            width:    isMobile ? '100%' : '300px',
         },
         searchInput: {
             width: '100%',
@@ -156,11 +158,11 @@ function InvestPage() {
         }
 
         return (
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(340px, 1fr))', 
-                gap: '24px',
-                marginTop: '32px' 
+            <div style={{
+                display:             'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap:                 isSmall ? '14px' : '24px',
+                marginTop:           '24px',
             }}>
                 {filteredProjects.map(project => (
                     <Link to={`/project/${project.id}`} key={project.id} style={styles.card} className="bento-hover">

@@ -49,13 +49,17 @@ export default function Login() {
     }}>
       {/* Dynamic Responsive Styles */}
       <style>{`
-        @media (max-width: 900px) {
-          .auth-side-panel { display: none !important; }
-          .auth-form-container { width: 100% !important; padding: 1.5rem !important; }
+        @media (max-width: 860px) {
+          .auth-side-panel   { display: none !important; }
+          .auth-form-container { width: 100% !important; padding: 2rem 1.5rem !important; }
+          .auth-mob-logo     { display: flex !important; }
         }
-        .auth-input:focus { 
-          border-color: ${tokens.primary} !important; 
-          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+        @media (max-width: 400px) {
+          .auth-form-container { padding: 1.5rem 1rem !important; }
+        }
+        .auth-input:focus {
+          border-color: ${tokens.primary} !important;
+          box-shadow: 0 0 0 2px rgba(16,185,129,0.2) !important;
           outline: none;
         }
         .btn-hover:hover:not(:disabled) {
@@ -116,14 +120,24 @@ export default function Login() {
       </div>
 
       {/* RIGHT PANEL: The Conversion (Mobile Responsive) */}
-      <div className="auth-form-container" style={{ 
-        flex: 1, 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div className="auth-form-container" style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         padding: '3rem'
       }}>
         <div style={{ width: '100%', maxWidth: '420px' }}>
+          {/* Mobile-only logo — shows when left panel is hidden */}
+          <div className="auth-mob-logo" style={{ display:'none', justifyContent:'center', marginBottom:'2.5rem' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <img src="/logo-dark-theme.png" alt="SmartFarmer"
+                style={{ width:38, height:38, objectFit:'contain', borderRadius:8 }} />
+              <span style={{ fontWeight:800, fontSize:'1.2rem', color:'#fff', letterSpacing:'-0.04em' }}>
+                SmartFarmer
+              </span>
+            </div>
+          </div>
           <Reveal>
             <div style={{ marginBottom: '2.5rem' }}>
               <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Welcome back</h1>

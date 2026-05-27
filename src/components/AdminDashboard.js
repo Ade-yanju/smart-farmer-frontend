@@ -12,12 +12,33 @@ import {
     FiCpu, FiList, FiEdit, FiMenu, FiX, FiShare2
 } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('projects');
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
     const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth > 1024);
+    const [adminName, setAdminName] = useState('');
     const { theme } = useTheme();
+
+    // Fetch admin's registered name from Firestore
+    useEffect(() => {
+        const fetchAdminName = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    setAdminName(data.username || data.firstName || '');
+                }
+            } catch (e) {
+                console.error('Could not fetch admin profile:', e);
+            }
+        };
+        fetchAdminName();
+    }, []);
 
     // Handle precise responsiveness and boundary crossing
     useEffect(() => {
@@ -203,8 +224,10 @@ function AdminDashboard() {
                 <header style={styles.header}>
                     <div style={styles.logoContainer}>
                         <div>
-                            <h1 style={{ margin: 0, fontSize: isMobile ? '24px' : '32px', fontWeight: 800, letterSpacing: '-0.5px' }}>Admin Panel</h1>
-                            <p style={{ margin: '6px 0 0', color: isDark ? '#94a3b8' : '#64748b', fontSize: '15px' }}>Precision monitoring for Smart Farmer.</p>
+                            <h1 style={{ margin: 0, fontSize: isMobile ? '24px' : '32px', fontWeight: 800, letterSpacing: '-0.5px' }}>
+                                Welcome back{adminName ? `, ${adminName}` : ''} 👋
+                            </h1>
+                            <p style={{ margin: '6px 0 0', color: isDark ? '#94a3b8' : '#64748b', fontSize: '15px' }}>Admin Panel · Precision monitoring for Smart Farmer.</p>
                         </div>
                     </div>
                     

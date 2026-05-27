@@ -40,12 +40,13 @@ function Settings({ userData, refreshUserData }) {
     // --- 2026 PREMIUM UI TOKENS ---
     const styles = {
         container: {
-            minHeight: '100vh',
-            padding: isMobile ? '20px 16px' : '40px 24px',
+            minHeight:       '100vh',
+            padding:         isMobile ? '16px 12px' : '40px 24px',
+            paddingBottom:   isMobile ? '96px' : '40px',   /* clear fixed nav */
             backgroundColor: isDark ? '#050505' : '#F9FAFB',
-            color: isDark ? '#FFFFFF' : '#111827',
-            fontFamily: "'Inter', -apple-system, system-ui, sans-serif",
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            color:           isDark ? '#FFFFFF' : '#111827',
+            fontFamily:      "'Inter', -apple-system, system-ui, sans-serif",
+            transition:      'all 0.3s cubic-bezier(0.4,0,0.2,1)',
         },
         wrapper: {
             maxWidth: '1200px',

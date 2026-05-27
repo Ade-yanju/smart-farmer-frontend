@@ -456,6 +456,7 @@ function AffiliateSection() {
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending]   = useState(false);
   const [error, setError]       = useState('');
+  /* phone/platform grid collapses to 1-col on phones < 480px */
 
   const handle = async (e) => {
     e.preventDefault();
@@ -501,7 +502,7 @@ function AffiliateSection() {
               Refer investors to SmartFarmer and earn 5% commission on every investment they make — paid monthly, directly to your bank account. No cap.
             </p>
             {/* Stats strip */}
-            <div style={{ display:"inline-flex", gap:"2rem", flexWrap:"wrap", justifyContent:"center", padding:"1rem 2rem", background:"rgba(16,185,129,.05)", border:"1px solid rgba(16,185,129,.12)", borderRadius:100 }}>
+            <div style={{ display:"inline-flex", gap:"clamp(1rem,4vw,2rem)", flexWrap:"wrap", justifyContent:"center", padding:"1rem clamp(1rem,4vw,2rem)", background:"rgba(16,185,129,.05)", border:"1px solid rgba(16,185,129,.12)", borderRadius:100, maxWidth:"100%" }}>
               {[["₦2.4M+","Paid out"],["340+","Partners"],["5%","Commission"],["2–3 days","Review time"]].map(([v,l]) => (
                 <div key={l} style={{ textAlign:"center" }}>
                   <div style={{ fontFamily:"var(--fm)", fontWeight:800, fontSize:"1.05rem", color:"var(--green)" }}>{v}</div>
@@ -589,6 +590,7 @@ function AffiliateSection() {
                 )}
 
                 <form onSubmit={handle}>
+                  <style>{`@media(max-width:480px){.aff-2col{grid-template-columns:1fr!important}}`}</style>
                   <div style={{ marginBottom:"1rem" }}>
                     <label className="lbl">Full Name *</label>
                     <input className="field" required value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} placeholder="Your full name" />
@@ -597,7 +599,7 @@ function AffiliateSection() {
                     <label className="lbl">Email Address *</label>
                     <input className="field" type="email" required value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} placeholder="you@email.com" />
                   </div>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem", marginBottom:"1rem" }}>
+                  <div className="aff-2col" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem", marginBottom:"1rem" }}>
                     <div>
                       <label className="lbl">Phone Number</label>
                       <input className="field" type="tel" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} placeholder="+234 ..." />
