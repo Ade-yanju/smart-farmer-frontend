@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { auth } from '../firebase';
-import { sendEmailVerification } from 'firebase/auth';
+import apiClient from '../axiosConfig';
 import { useModal } from '../context/ModalContext';
 
 const styles = {
@@ -32,12 +31,13 @@ function EmailVerificationBanner() {
 const { showModal } = useModal(); // Get the showModal function
     const handleSendVerification = async () => {
         try {
-            await sendEmailVerification(auth.currentUser);
+            await apiClient.post('/auth/send-verification');
             setEmailSent(true);
             showModal('Verification email sent! Please check your inbox (and spam folder).');
         } catch (error) {
             console.error("Error sending verification email:", error);
-            showModal('Failed to send verification email. Please try again later.');
+            const message = error.response?.data?.message || 'Failed to send verification email. Please try again later.';
+            showModal(message);
         }
     };
 

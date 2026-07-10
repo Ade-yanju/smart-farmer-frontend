@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } f
 import { auth, db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useTheme } from "../context/ThemeContext";
+import apiClient from "../axiosConfig";
 
 export default function Signup() {
   const [fullName, setFullName] = useState("");
@@ -45,6 +46,16 @@ export default function Signup() {
         referredBy: referralCode,
         notificationPrefs: { activity: true, investment: true, promotions: false },
       });
+
+      // Send the verification email via the backend (Resend). Don't block
+      // signup if the email service is briefly down — the dashboard banner
+      // lets the user request it again.
+      try {
+        await apiClient.post("/auth/send-verification");
+      } catch (mailErr) {
+        console.error("Could not send verification email:", mailErr);
+      }
+
       navigate("/dashboard");
     } catch (err) {
       setError(err.message.replace("Firebase:", ""));
