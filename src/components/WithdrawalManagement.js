@@ -79,7 +79,12 @@ function WithdrawalManagement() {
   };
 
   const fmt = n => new Intl.NumberFormat('en-NG', { style:'currency', currency:'NGN', minimumFractionDigits:0 }).format(Number(n)||0);
-  const fmtDate = ts => ts?.seconds ? new Date(ts.seconds*1000).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}) : 'N/A';
+  // Timestamps arrive as {seconds} from the client SDK or {_seconds} when
+  // serialized by the backend — handle both, and show date AND time for auditing.
+  const fmtDate = ts => {
+    const s = ts?.seconds ?? ts?._seconds;
+    return s ? new Date(s * 1000).toLocaleString('en-NG', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
+  };
 
   const counts = ['pending','approved','rejected'].reduce((a, s) => {
     a[s] = withdrawals.filter(w => w.status === s).length;
@@ -222,7 +227,11 @@ function WithdrawalManagement() {
               {[
                 { title:'Beneficiary', Icon:FiUser, rows:[['Email',detail.email],['System ID',detail.id]] },
                 { title:'Bank Details', Icon:FiCreditCard, rows:[['Bank',detail.bankDetails?.bankName||'N/A'],['Account No',detail.bankDetails?.accountNumber||'N/A'],['Account Name',detail.bankDetails?.accountName||'N/A']] },
-                { title:'Timeline', Icon:FiClock, rows:[['Requested',fmtDate(detail.createdAt)]] },
+                { title:'Timeline', Icon:FiClock, rows:[
+                  ['Requested', fmtDate(detail.createdAt)],
+                  ...(detail.processedAt ? [['Processed', fmtDate(detail.processedAt)]] : []),
+                  ...(detail.processedBy ? [['Processed By', detail.processedBy]] : []),
+                ] },
               ].map(sec => (
                 <div key={sec.title} style={{ marginBottom:18 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10, fontSize:12, fontWeight:700, color:c.muted, textTransform:'uppercase', letterSpacing:'.06em' }}>

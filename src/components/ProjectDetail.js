@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, runTransaction, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import apiClient from '../axiosConfig';
 import { FiArrowLeft, FiTrendingUp, FiClock, FiTarget, FiPackage, FiDollarSign, FiInfo } from 'react-icons/fi';
 import ROICalculator from './ROICalculator';
 import { useTheme } from '../context/ThemeContext'; // Assuming you have this based on previous files
@@ -121,38 +122,22 @@ function ProjectDetail() {
         setStatusMessage({ text: 'Processing investment securely...', type: 'info' });
         
         try {
-            await runTransaction(db, async (transaction) => {
-                const projectRef = doc(db, 'projects', projectId);
-                const userRef = doc(db, 'users', currentUser.uid);
-                const projectDoc = await transaction.get(projectRef);
-                const userDoc = await transaction.get(userRef);
-                
-                if (!projectDoc.exists() || !userDoc.exists()) throw new Error("Document not found");
-                
-                const newProjectAmount = projectDoc.data().currentAmount + investmentAmount;
-                const newUserBalance = userDoc.data().walletBalance - investmentAmount;
-                const newAvailableUnits = projectDoc.data().availableUnits - numberOfUnits;
-                
-                if (newUserBalance < 0) throw new Error("Insufficient funds.");
-                if (newAvailableUnits < 0) throw new Error("Units no longer available.");
-                
-                transaction.update(projectRef, { currentAmount: newProjectAmount, availableUnits: newAvailableUnits });
-                transaction.update(userRef, { walletBalance: newUserBalance });
-                
-                const newInvestmentRef = doc(collection(db, "investments"));
-                transaction.set(newInvestmentRef, { projectId, userId: currentUser.uid, amount: investmentAmount, units: numberOfUnits, createdAt: serverTimestamp(), status: 'active' });
-                
-                const newTransactionRef = doc(collection(db, "transactions"));
-                transaction.set(newTransactionRef, { userId: currentUser.uid, type: 'Investment', amount: investmentAmount, status: 'Completed', createdAt: serverTimestamp(), details: `${numberOfUnits} units in ${projectDoc.data().name}` });
+            // The backend recomputes the price from the project document and
+            // performs the debit + investment atomically, so a tampered browser
+            // can't change the amount or invest money it doesn't have.
+            await apiClient.post('/investments/create', {
+                projectId,
+                units: numberOfUnits,
             });
-            
+
             setProject(prev => ({ ...prev, currentAmount: prev.currentAmount + investmentAmount, availableUnits: prev.availableUnits - numberOfUnits }));
             setWalletBalance(prev => prev - investmentAmount);
             setUnits('');
             setStatusMessage({ text: 'Investment successful! Units acquired.', type: 'success' });
         } catch (error) {
             console.error("Error investing:", error);
-            setStatusMessage({ text: `Failed to invest: ${error.message}`, type: 'error' });
+            const message = error.response?.data?.message || error.message;
+            setStatusMessage({ text: `Failed to invest: ${message}`, type: 'error' });
         } finally {
             setInvesting(false);
             setTimeout(() => setStatusMessage({ text: '', type: '' }), 5000);

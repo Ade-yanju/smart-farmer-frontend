@@ -66,7 +66,12 @@ function ManualDepositManagement() {
   };
 
   const fmt = n => new Intl.NumberFormat('en-NG', { style:'currency', currency:'NGN', minimumFractionDigits:0 }).format(Number(n)||0);
-  const fmtDate = ts => ts?.seconds ? new Date(ts.seconds*1000).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}) : 'N/A';
+  // Timestamps arrive as {seconds} from the client SDK or {_seconds} when
+  // serialized by the backend — handle both, and show date AND time for auditing.
+  const fmtDate = ts => {
+    const s = ts?.seconds ?? ts?._seconds;
+    return s ? new Date(s * 1000).toLocaleString('en-NG', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
+  };
 
   return (
     <>

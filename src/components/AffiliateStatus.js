@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
 import { useModal } from '../context/ModalContext';
+import apiClient from '../axiosConfig';
 
 const PLATFORMS = ['Instagram','X / Twitter','TikTok','YouTube','Telegram','WhatsApp','Blog / Website','Other'];
 
@@ -23,6 +24,7 @@ export default function AffiliateStatus({ userData }) {
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied]     = useState(false);
   const [shareErr, setShareErr] = useState('');
+  const [signups, setSignups]   = useState(null);       // number of users registered via my code
 
   const { theme }     = useTheme();
   const { showModal } = useModal();
@@ -92,6 +94,18 @@ export default function AffiliateStatus({ userData }) {
     };
     fetch_();
   }, [currentUser]);
+
+  /* ── Signup count (users who registered through my referral code) ── */
+  useEffect(() => {
+    const fetchSignups = async () => {
+      if (!currentUser || app?.status !== 'approved') return;
+      try {
+        const res = await apiClient.get('/user/referrals');
+        setSignups(Array.isArray(res.data) ? res.data.length : 0);
+      } catch (e) { console.error('Signup count error:', e); }
+    };
+    fetchSignups();
+  }, [currentUser, app]);
 
   /* ── Submit new application ── */
   const handleSubmit = async (e) => {
@@ -208,8 +222,9 @@ export default function AffiliateStatus({ userData }) {
             </div>
 
             {/* Quick stats */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:20 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(130px, 1fr))', gap:10, marginBottom:20 }}>
               {[
+                { label:'Signups',         value:signups === null ? '…' : signups, color:c.green },
                 { label:'Commission Rate', value:'5%',     color:c.green  },
                 { label:'Your Code',       value:userData?.referralCode||'—', color:c.green },
                 { label:'Payout',          value:'Monthly', color:c.txt   },

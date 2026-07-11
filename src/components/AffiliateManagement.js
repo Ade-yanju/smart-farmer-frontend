@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { db } from '../firebase';
-import { collection, getDocs, doc, updateDoc, orderBy, query } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { collection, getDocs, doc, updateDoc, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import {
   FiUsers, FiClock, FiCheck, FiX, FiPhone, FiMail,
   FiMessageSquare, FiRefreshCw, FiExternalLink, FiFilter,
@@ -18,6 +18,8 @@ const FILTERS = ['All', 'pending', 'contacted', 'approved', 'rejected'];
 
 export default function AffiliateManagement() {
   const [applications, setApplications] = useState([]);
+  const [signupStats, setSignupStats]   = useState({});   // referralCode → number of signups
+  const [codeByApp, setCodeByApp]       = useState({});   // application id → referral code
   const [loading, setLoading]           = useState(true);
   const [filter, setFilter]             = useState('All');
   const [search, setSearch]             = useState('');
@@ -49,17 +51,44 @@ export default function AffiliateManagement() {
   /* ── fetch ── */
   const fetchApps = useCallback(async () => {
     setLoading(true);
+    let apps = [];
     try {
       const q    = query(collection(db, 'affiliate_applications'), orderBy('createdAt', 'desc'));
       const snap = await getDocs(q);
-      setApplications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (e) {
       // fallback without orderBy if index missing
       try {
         const snap = await getDocs(collection(db, 'affiliate_applications'));
-        setApplications(snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse());
+        apps = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
       } catch (e2) { console.error(e2); }
-    } finally { setLoading(false); }
+    }
+    setApplications(apps);
+
+    // Signup counts: one pass over the users collection (admin-only read)
+    // gives every affiliate's referral code and how many users registered
+    // through it, without a query per application.
+    try {
+      const usersSnap  = await getDocs(collection(db, 'users'));
+      const byUid      = {};
+      const byEmail    = {};
+      const codeCounts = {};
+      usersSnap.docs.forEach(d => {
+        const u = d.data();
+        byUid[d.id] = u;
+        if (u.email) byEmail[u.email.toLowerCase()] = u;
+        if (u.referredBy) codeCounts[u.referredBy] = (codeCounts[u.referredBy] || 0) + 1;
+      });
+      const codes = {};
+      apps.forEach(a => {
+        const owner = (a.userId && byUid[a.userId]) || (a.email && byEmail[a.email.toLowerCase()]);
+        if (owner?.referralCode) codes[a.id] = owner.referralCode;
+      });
+      setSignupStats(codeCounts);
+      setCodeByApp(codes);
+    } catch (e) { console.error('Signup stats error:', e); }
+
+    setLoading(false);
   }, []);
 
   useEffect(() => { fetchApps(); }, [fetchApps]);
@@ -68,8 +97,15 @@ export default function AffiliateManagement() {
   const updateStatus = async (id, status) => {
     setUpdating(id);
     try {
-      await updateDoc(doc(db, 'affiliate_applications', id), { status });
-      setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+      // Audit trail: record when the decision was made and by which admin.
+      await updateDoc(doc(db, 'affiliate_applications', id), {
+        status,
+        reviewedAt: serverTimestamp(),
+        reviewedBy: auth.currentUser?.email || auth.currentUser?.uid || 'admin',
+      });
+      setApplications(prev => prev.map(a => a.id === id
+        ? { ...a, status, reviewedAt: { seconds: Math.floor(Date.now() / 1000) }, reviewedBy: auth.currentUser?.email }
+        : a));
     } catch (e) { console.error(e); }
     finally { setUpdating(null); }
   };
@@ -99,6 +135,15 @@ export default function AffiliateManagement() {
   const fmtDate = ts => ts?.seconds
     ? new Date(ts.seconds * 1000).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })
     : 'N/A';
+
+  const fmtDateTime = ts => ts?.seconds
+    ? new Date(ts.seconds * 1000).toLocaleString('en-NG', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : 'N/A';
+
+  const signupsFor = app => {
+    const code = codeByApp[app.id];
+    return code ? (signupStats[code] || 0) : null;   // null = no referral code found
+  };
 
   return (
     <>
@@ -214,6 +259,13 @@ export default function AffiliateManagement() {
                         </span>
                       )}
 
+                      {/* signup count badge */}
+                      {signupsFor(app) !== null && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 100, background: 'rgba(16,185,129,.1)', color: c.green, fontSize: 11, fontWeight: 700, border: '1px solid rgba(16,185,129,.18)', flexShrink: 0 }}>
+                          <FiUsers size={11} /> {signupsFor(app)} signup{signupsFor(app) !== 1 ? 's' : ''}
+                        </span>
+                      )}
+
                       {/* date */}
                       {!isMobile && (
                         <div style={{ fontSize: 12, color: c.muted, flexShrink: 0 }}>{fmtDate(app.createdAt)}</div>
@@ -252,8 +304,21 @@ export default function AffiliateManagement() {
                               )}
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: c.muted }}>
                                 <FiClock size={13} />
-                                Applied: {fmtDate(app.createdAt)}
+                                Applied: {fmtDateTime(app.createdAt)}
                               </div>
+                              {codeByApp[app.id] && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: c.muted }}>
+                                  <FiUsers size={13} />
+                                  Code <span style={{ color: c.green, fontWeight: 700, fontFamily: 'monospace' }}>{codeByApp[app.id]}</span>
+                                  &nbsp;— {signupsFor(app)} user{signupsFor(app) !== 1 ? 's' : ''} registered through it
+                                </div>
+                              )}
+                              {app.reviewedAt && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: c.muted }}>
+                                  <FiCheck size={13} />
+                                  Reviewed: {fmtDateTime(app.reviewedAt)}{app.reviewedBy ? ` by ${app.reviewedBy}` : ''}
+                                </div>
+                              )}
                             </div>
                           </div>
 

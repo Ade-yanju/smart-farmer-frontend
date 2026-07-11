@@ -5,7 +5,8 @@
       "Bash(gh auth *)",
       "Bash(curl -s \"https://api.github.com/users/Ade-yanju/repos?per_page=100&sort=pushed\")",
       "Bash(curl -s \"https://api.github.com/users/Ade-yanju/repos?per_page=100&page=2&sort=pushed\")",
-      "Bash(curl -s \"https://api.github.com/users/subhashnaidu77/repos?per_page=100&sort=pushed\")"
+      "Bash(curl -s \"https://api.github.com/users/subhashnaidu77/repos?per_page=100&sort=pushed\")",
+      "Bash(npx react-scripts *)"
     ]
   }
 }

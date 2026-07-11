@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import apiClient from '../axiosConfig';
 import { FiCopy, FiShare2, FiUsers, FiGift, FiLink, FiCheck, FiExternalLink } from 'react-icons/fi';
 import { useModal } from '../context/ModalContext';
 import { useTheme } from '../context/ThemeContext';
@@ -30,9 +29,10 @@ export default function Referrals({ userData }) {
     const fetch_ = async () => {
       if (!userData?.referralCode) { setLoading(false); return; }
       try {
-        const q = query(collection(db, 'users'), where('referredBy', '==', userData.referralCode));
-        const snap = await getDocs(q);
-        setReferredUsers(snap.docs.map(d => d.data()));
+        // Fetched via the backend: security rules no longer let browsers
+        // query the users collection directly.
+        const res = await apiClient.get('/user/referrals');
+        setReferredUsers(res.data);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     };

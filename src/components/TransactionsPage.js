@@ -168,7 +168,7 @@ export default function TransactionsPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: isMobile ? 13 : 14, color: txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{label}</div>
                       <div style={{ fontSize: 11, color: muted }}>
-                        {date ? date.toLocaleString('en-NG', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                        {date ? date.toLocaleString('en-NG', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'N/A'}
                       </div>
                     </div>
                     {/* type badge (tablet+) */}
