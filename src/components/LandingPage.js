@@ -123,12 +123,12 @@ function SupportWidget() {
   const [openFaq, setOpenFaq] = useState(null);
 
   const faqs = [
-    { q:"What's the minimum investment?",          a:"The minimum is ₦100,000. No upper cap — amounts above ₦10M require enterprise KYC (24–48 hrs)." },
-    { q:"When do I receive my returns?",            a:"At crop maturity your principal + yield are paid directly to your Nigerian bank account." },
-    { q:"Is my investment insured?",                a:"Yes — 100% of deployments are covered by parametric weather insurance. If crops fail due to weather, your principal is recovered automatically." },
-    { q:"Can I withdraw before the cycle ends?",   a:"No — capital is locked for your chosen cycle (3, 6, or 9 months). Funds are tied to physical, growing farm inputs." },
-    { q:"How long does KYC take?",                 a:"Under 5 minutes. You'll need a government-issued ID and your BVN." },
-    { q:"Is SmartFarmer a crypto platform?",       a:"No. SmartFarmer is fiat-native (NGN/USD), SEC-regulated, and deals strictly with real-world agricultural assets. Blockchain is used only for immutable record-keeping." },
+    { q:"What's the minimum investment?",          a:"The minimum is ₦100,000. Only invest money you can afford to lose — agricultural investments carry risk." },
+    { q:"When do I receive any returns?",           a:"If a cycle is profitable, your principal plus any yield is paid to your Nigerian bank account at crop maturity. Returns are not guaranteed and depend on the actual harvest and sale." },
+    { q:"Is my investment insured or guaranteed?",  a:"No. Returns are not guaranteed and your capital is at risk. You may lose some or all of the money you invest. Please read our Risk Disclosure before investing." },
+    { q:"Can I withdraw before the cycle ends?",   a:"No — funds are committed to a growing crop cycle (3, 6, or 9 months) and cannot be withdrawn early." },
+    { q:"How long does KYC take?",                 a:"Usually a few minutes. You'll need a government-issued ID." },
+    { q:"Is SmartFarmer a crypto platform?",       a:"No. SmartFarmer deals with real-world agricultural cycles in Naira. We are not a licensed bank or a crypto exchange." },
   ];
 
   const channels = [
@@ -275,7 +275,7 @@ function SupportWidget() {
    TICKER
 ──────────────────────────────────────────────────────────── */
 function Ticker() {
-  const items = ["₦4.8B+ Capital Deployed","2,400+ Active Investors","97.3% Portfolio Maturity Rate","18 States Covered","2,000+ Farm Cooperatives","Zero Capital Loss Events","14.2% Average APY","SEC Nigeria Compliant","100% Insured Deployments"];
+  const items = ["Agriculture-Backed Investing","Invest From ₦100,000","Choose 3–9 Month Cycles","Maize · Cassava · Soybean · Rice","Track Your Portfolio Live","Returns Are Not Guaranteed","Your Capital Is At Risk","Support 7 Days a Week"];
   const all = [...items, ...items];
   return (
     <div style={{ overflow: "hidden", background: "rgba(16,185,129,.05)", borderBottom: "1px solid rgba(16,185,129,.1)", padding: ".55rem 0" }}>
@@ -295,17 +295,13 @@ function Ticker() {
 ──────────────────────────────────────────────────────────── */
 function TrustBar() {
   return (
-    <div style={{ borderBottom: "1px solid var(--border)", padding: "1.2rem 0", background: "rgba(255,255,255,.015)" }}>
-      <div className="wrap" style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-        <span style={{ fontSize: ".62rem", color: "rgba(255,255,255,.28)", textTransform: "uppercase", letterSpacing: ".1em", flexShrink: 0 }}>Regulated & Certified By</span>
-        {["SEC Nigeria","CBN Compliant","ISO 27001","NDIC Secured","NSE Listed"].map(c => (
-          <div key={c} style={{ display: "flex", alignItems: "center", gap: ".35rem", opacity: .4 }}>
-            <div style={{ width: 18, height: 18, borderRadius: 4, background: "rgba(255,255,255,.14)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="10" height="10" fill="white" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            </div>
-            <span style={{ fontSize: ".7rem", fontWeight: 700, color: "white" }}>{c}</span>
-          </div>
-        ))}
+    <div style={{ borderBottom: "1px solid rgba(245,158,11,.25)", padding: "1rem 0", background: "rgba(245,158,11,.05)" }}>
+      <div className="wrap" style={{ display: "flex", alignItems: "center", gap: ".6rem", flexWrap: "wrap", justifyContent: "center", textAlign: "center" }}>
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#F59E0B" strokeWidth="2" style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.71-3l-6.93-12a2 2 0 00-3.42 0l-6.93 12a2 2 0 001.71 3z"/></svg>
+        <span style={{ fontSize: ".76rem", color: "rgba(255,255,255,.7)", lineHeight: 1.5 }}>
+          <strong style={{ color: "#F59E0B" }}>Risk warning:</strong> Agricultural investing carries risk. Returns are not guaranteed and you may lose some or all of your capital.{" "}
+          <a href="/risk" style={{ color: "#F59E0B", textDecoration: "underline" }}>Read the full risk disclosure.</a>
+        </span>
       </div>
     </div>
   );
@@ -316,10 +312,10 @@ function TrustBar() {
 ──────────────────────────────────────────────────────────── */
 function StatsRow() {
   const data = [
-    { l: "Total Capital Deployed", v: "₦4.8B+", s: "+₦240M this month",    up: true },
-    { l: "Active Farm Cycles",      v: "1,247",  s: "Across 18 states",      up: true },
-    { l: "Avg. Maturity Return",    v: "14.2%",  s: "APY last 90 days",      up: true },
-    { l: "Insurance Coverage",      v: "100%",   s: "All deployments",       up: null },
+    { l: "Minimum Investment",  v: "₦100k",    s: "Start small",                    up: null },
+    { l: "Cycle Duration",      v: "3–9 mo",   s: "You choose the length",          up: null },
+    { l: "Crop Options",        v: "4",        s: "Maize, cassava, soybean, rice",  up: null },
+    { l: "Returns",             v: "Variable", s: "Not guaranteed · capital at risk", up: null },
   ];
   return (
     <div className="stats4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "rgba(255,255,255,.06)" }}>
@@ -344,8 +340,8 @@ function HowItWorks() {
   const steps = [
     { n:"01", t:"Verify & Fund",   d:"Complete KYC in under 5 minutes. Fund your wallet via bank transfer in NGN or USD.", p:"M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" },
     { n:"02", t:"Select a Cycle",  d:"Choose from maize, cassava, soybean, or rice. Pick your duration (3–9 months) and risk tranche.", p:"M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" },
-    { n:"03", t:"Monitor Live",    d:"Track via satellite imagery, IoT sensors, and on-chain audit logs — updated every 24 hours.", p:"M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
-    { n:"04", t:"Collect Returns", d:"At crop maturity, principal + yield paid directly to your bank account. Reinvest or withdraw.", p:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" },
+    { n:"03", t:"Track Progress",  d:"Follow your cycle's status from your dashboard, with updates as the crop moves through the season.", p:"M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+    { n:"04", t:"Cycle Outcome",   d:"At crop maturity, any principal and yield from a successful cycle is paid to your bank account. Outcomes vary — returns are not guaranteed.", p:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" },
   ];
   return (
     <div className="steps-wrap" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)" }}>
@@ -397,9 +393,9 @@ function CropCards() {
               <div className="h3" style={{ marginBottom:".4rem" }}>{c.n}</div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1rem" }}>
                 <span style={{ fontSize:".73rem", color:"rgba(255,255,255,.38)" }}>{c.s}</span>
-                <span style={{ fontSize:".9rem", fontWeight:800, color:"var(--green)", fontFamily:"var(--fm)" }}>{c.a} APY</span>
+                <span style={{ fontSize:".9rem", fontWeight:800, color:"var(--green)", fontFamily:"var(--fm)" }}>{c.a} target</span>
               </div>
-              <a href="/register" style={{ display:"block", padding:".575rem", textAlign:"center", borderRadius:8, background:"rgba(16,185,129,.07)", border:"1px solid rgba(16,185,129,.2)", color:"var(--green)", fontSize:".77rem", fontWeight:700, transition:"background .2s" }}
+              <a href="/signup" style={{ display:"block", padding:".575rem", textAlign:"center", borderRadius:8, background:"rgba(16,185,129,.07)", border:"1px solid rgba(16,185,129,.2)", color:"var(--green)", fontSize:".77rem", fontWeight:700, transition:"background .2s" }}
                 onMouseOver={e => e.currentTarget.style.background="rgba(16,185,129,.14)"}
                 onMouseOut={e  => e.currentTarget.style.background="rgba(16,185,129,.07)"}>
                 Invest in {c.n} →
@@ -499,11 +495,11 @@ function AffiliateSection() {
               Get paid to grow Nigeria's agri-investment ecosystem.
             </h2>
             <p style={{ maxWidth:540, margin:"0 auto 2rem", color:"var(--muted)", fontSize:"1.05rem" }}>
-              Refer investors to SmartFarmer and earn 5% commission on every investment they make — paid monthly, directly to your bank account. No cap.
+              Refer new users to SmartFarmer and earn a 5% commission on investments they make — paid monthly to your bank account. Commissions depend on your referrals actually investing.
             </p>
-            {/* Stats strip */}
+            {/* Program terms strip */}
             <div style={{ display:"inline-flex", gap:"clamp(1rem,4vw,2rem)", flexWrap:"wrap", justifyContent:"center", padding:"1rem clamp(1rem,4vw,2rem)", background:"rgba(16,185,129,.05)", border:"1px solid rgba(16,185,129,.12)", borderRadius:100, maxWidth:"100%" }}>
-              {[["₦2.4M+","Paid out"],["340+","Partners"],["5%","Commission"],["2–3 days","Review time"]].map(([v,l]) => (
+              {[["5%","Commission"],["Monthly","Payouts"],["No cap","On earnings"],["2–3 days","Review time"]].map(([v,l]) => (
                 <div key={l} style={{ textAlign:"center" }}>
                   <div style={{ fontFamily:"var(--fm)", fontWeight:800, fontSize:"1.05rem", color:"var(--green)" }}>{v}</div>
                   <div style={{ fontSize:".7rem", color:"var(--muted)", marginTop:".1rem" }}>{l}</div>
@@ -539,9 +535,9 @@ function AffiliateSection() {
                 ))}
               </div>
 
-              {/* Social proof strip */}
+              {/* Program terms strip */}
               <div style={{ display:"flex", gap:"1.5rem", flexWrap:"wrap" }}>
-                {[["₦2.4M+","Paid to affiliates"],["340+","Active partners"],["5%","Commission rate"]].map(([v,l]) => (
+                {[["5%","Commission rate"],["Monthly","Bank payouts"],["No cap","On earnings"]].map(([v,l]) => (
                   <div key={l}>
                     <div style={{ fontFamily:"var(--fm)", fontSize:"1.2rem", fontWeight:800, color:"var(--green)" }}>{v}</div>
                     <div style={{ fontSize:".73rem", color:"var(--muted)", marginTop:".1rem" }}>{l}</div>
@@ -669,12 +665,12 @@ export default function LandingPage() {
 
   const navLinks = [["How It Works","#how"],["Crop Cycles","#crops"],["Yield Terminal","#estimator"],["FAQ","#faq"],["Affiliate","#affiliate"]];
   const faqs = [
-    { q:"How is the 14.2% APY generated?",          a:"Returns come from actual commodity profit margins. Your capital buys raw inputs (seeds, fertiliser) at wholesale. When the crop matures and sells to pre-vetted off-takers, the profit distributes directly to your bank account." },
-    { q:"What is the minimum investment?",           a:"The minimum is ₦100,000. There is no upper cap — investments above ₦10,000,000 require our enhanced enterprise KYC, which takes 24–48 hours." },
-    { q:"What happens if a crop fails due to weather?", a:"Every deployment is protected by parametric weather insurance. If rainfall, temperature, or other metrics breach critical thresholds, the insurance smart contract auto-executes and recovers your full principal." },
-    { q:"Are there any lock-up periods?",            a:"Yes — capital is locked for the duration of the cycle you choose (3, 6, or 9 months). Because funds are tied to real, growing physical assets, early withdrawal is not supported." },
-    { q:"Is SmartFarmer a cryptocurrency platform?", a:"No. SmartFarmer is a fiat-native (NGN/USD), SEC-regulated platform dealing strictly with real-world agricultural assets. Blockchain is used only for immutable back-end record-keeping." },
-    { q:"How is my investment protected?",           a:"Three layers: (1) physical asset backing — your capital buys insured real farm inputs; (2) parametric weather insurance on every cycle; (3) cooperative liability agreements with all 2,000+ farming partners." },
+    { q:"How are returns generated?",                a:"When a cycle is profitable, returns come from the margin on the crop: your capital buys inputs (seeds, fertiliser), and if the crop matures and sells well, the profit is shared. Harvests can under-perform, so returns vary and are never guaranteed." },
+    { q:"What is the minimum investment?",           a:"The minimum is ₦100,000. Only invest money you can afford to lose." },
+    { q:"What happens if a crop fails?",             a:"You can lose part or all of your capital. Poor weather, pests, low market prices, or a failed harvest can reduce or wipe out returns. SmartFarmer does not guarantee your principal." },
+    { q:"Are there any lock-up periods?",            a:"Yes — funds are committed for the cycle you choose (3, 6, or 9 months). Because the money is tied to a growing crop, early withdrawal is not supported." },
+    { q:"Is SmartFarmer regulated or a crypto platform?", a:"SmartFarmer is not a licensed bank, is not a crypto platform, and does not claim any government guarantee. Please read our Terms and Risk Disclosure before investing, and consider seeking independent financial advice." },
+    { q:"How is risk managed?",                      a:"Through KYC checks, crop diversification, and vetted cooperative partners. These reduce risk but do not remove it — agricultural investing is inherently risky." },
   ];
 
   return (
@@ -683,7 +679,7 @@ export default function LandingPage() {
 
       {/* ── Banner ── */}
       <div style={{ background:"linear-gradient(90deg,#059669,#10B981,#34D399)", color:"#000", fontSize:".74rem", fontWeight:700, textAlign:"center", padding:".5rem 1rem", letterSpacing:".03em", display:"flex", alignItems:"center", justifyContent:"center", gap:"1.25rem", flexWrap:"wrap" }}>
-        <span>🌱 SmartFarmer V2 is live — Institutional-grade agricultural yield, now for everyone</span>
+        <span>🌱 Invest in real Nigerian agriculture — returns are not guaranteed, capital is at risk</span>
         <span style={{ display:"flex", gap:".6rem", alignItems:"center" }}>
           <a href="https://x.com/smartfarmer_ng" target="_blank" rel="noopener noreferrer" style={{ color:"#000", textDecoration:"none", fontWeight:800, opacity:.75, fontSize:".7rem" }}>𝕏 Twitter</a>
           <span style={{ opacity:.4 }}>·</span>
@@ -741,16 +737,16 @@ export default function LandingPage() {
               <div className="hero-txt">
                 <div className="badge hero-badge" style={{ marginBottom:"1.6rem" }}>
                   <span className="dot-g" />
-                  Protocol Live · 14.2% Average APY
+                  Agriculture-backed investing
                 </div>
                 <h1 className="h1" style={{ marginBottom:"1.25rem" }}>
                   Your capital,<br/><span style={{ color:"var(--green)" }}>growing in soil.</span>
                 </h1>
                 <p style={{ marginBottom:"2.5rem", fontSize:"clamp(.975rem,2vw,1.1rem)", maxWidth:510, color:"#888" }}>
-                  SmartFarmer routes your capital directly to audited, asset-backed agricultural inputs. Predictable, real-world returns — no crypto, no stock market exposure.
+                  SmartFarmer connects your capital with real Nigerian farm cycles. Any returns depend on actual harvest outcomes — they are not guaranteed, and your capital is at risk.
                 </p>
                 <div className="hero-cta" style={{ display:"flex", gap:".875rem", flexWrap:"wrap" }}>
-                  <a href="/register" className="btn btn-p">
+                  <a href="/signup" className="btn btn-p">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                     Start Investing
                   </a>
@@ -759,17 +755,11 @@ export default function LandingPage() {
                     Run Simulation
                   </a>
                 </div>
-                <div className="hero-proof" style={{ marginTop:"2.25rem", display:"flex", alignItems:"center", gap:"1rem", flexWrap:"wrap" }}>
-                  <div style={{ display:"flex" }}>
-                    {["#10B981","#059669","#047857","#065F46","#064E3B"].map((c, i) => (
-                      <div key={i} style={{ width:30, height:30, borderRadius:"50%", background:c, border:"2px solid #050505", marginLeft:i?-8:0, zIndex:5-i, display:"flex", alignItems:"center", justifyContent:"center", fontSize:".6rem", color:"#000", fontWeight:800 }}>
-                        {["AO","BM","CF","DI","EK"][i]}
-                      </div>
-                    ))}
-                  </div>
+                <div className="hero-proof" style={{ marginTop:"2.25rem", display:"flex", alignItems:"center", gap:".65rem", flexWrap:"wrap" }}>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--green)" strokeWidth="2" style={{ flexShrink:0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                   <div>
-                    <div style={{ fontSize:".82rem", fontWeight:600, color:"#fff" }}>2,400+ active investors</div>
-                    <div style={{ fontSize:".72rem", color:"var(--green)" }}>★★★★★ 4.9/5 · Verified reviews</div>
+                    <div style={{ fontSize:".82rem", fontWeight:600, color:"#fff" }}>Capital tied to real farm inputs</div>
+                    <div style={{ fontSize:".72rem", color:"var(--muted)" }}>Choose your crop, cycle length, and amount</div>
                   </div>
                 </div>
               </div>
@@ -787,7 +777,7 @@ export default function LandingPage() {
                 <div className="hero-card" style={{ position:"absolute", bottom:"1.5rem", left:"1.5rem", right:"1.5rem", background:"rgba(8,8,8,.93)", backdropFilter:"blur(20px)", border:"1px solid rgba(255,255,255,.09)", borderRadius:16, padding:"1.2rem" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:".875rem" }}>
                     <div>
-                      <div style={{ fontSize:".63rem", color:"rgba(255,255,255,.38)", textTransform:"uppercase", letterSpacing:".06em", marginBottom:".2rem" }}>Live Portfolio Value</div>
+                      <div style={{ fontSize:".63rem", color:"rgba(255,255,255,.38)", textTransform:"uppercase", letterSpacing:".06em", marginBottom:".2rem" }}>Example Portfolio · Illustration</div>
                       <div className="hero-pval" style={{ fontSize:"2.1rem", fontWeight:800, fontFamily:"var(--fm)", color:"#fff", lineHeight:1 }}>₦2,450,000</div>
                     </div>
                     <div style={{ background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.25)", borderRadius:8, padding:".45rem .8rem", display:"flex", alignItems:"center", gap:".3rem" }}>
@@ -850,8 +840,8 @@ export default function LandingPage() {
                   <div style={{ width:40, height:40, borderRadius:10, background:"var(--green)", color:"#000", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:"1rem" }}>
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                   </div>
-                  <div className="h3" style={{ fontSize:"1.2rem", marginBottom:".4rem" }}>Asset-Backed Security</div>
-                  <p style={{ margin:0, fontSize:".88rem", color:"var(--muted)" }}>Capital doesn't sit idle. Funds directly purchase audited, physical farm materials — seeds, fertilisers, equipment — each insured against comprehensive risks.</p>
+                  <div className="h3" style={{ fontSize:"1.2rem", marginBottom:".4rem" }}>Asset-Backed Model</div>
+                  <p style={{ margin:0, fontSize:".88rem", color:"var(--muted)" }}>Capital doesn't sit idle. Funds are used to purchase physical farm materials — seeds, fertilisers, equipment. Note: physical assets can still be affected by weather, pests, and market prices.</p>
                 </div>
               </div>
             </Reveal>
@@ -869,8 +859,8 @@ export default function LandingPage() {
                 <div style={{ width:40, height:40, borderRadius:10, background:"rgba(255,255,255,.07)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:"1rem" }}>
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--green)" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
-                <div className="h3" style={{ marginBottom:".4rem" }}>Algorithmic Risk Control</div>
-                <p style={{ margin:0, fontSize:".875rem", color:"var(--muted)" }}>Integrated KYC, parametric weather insurance, and real-time satellite monitoring protect every single deployment.</p>
+                <div className="h3" style={{ marginBottom:".4rem" }}>Risk Management</div>
+                <p style={{ margin:0, fontSize:".875rem", color:"var(--muted)" }}>KYC checks, crop diversification, and vetted cooperative partners help manage risk — but do not remove it. Agricultural returns are never guaranteed.</p>
               </div>
             </Reveal>
             <Reveal delay={300} style={{ gridColumn:"span 8" }}>
@@ -879,7 +869,7 @@ export default function LandingPage() {
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                 </div>
                 <div className="h3" style={{ fontSize:"1.2rem", marginBottom:".4rem" }}>Measurable Local Impact</div>
-                <p style={{ margin:0, color:"var(--muted)" }}>Every Naira deployed translates directly to boosted regional yields and increased income for 2,000+ vetted farming cooperatives across Nigeria.</p>
+                <p style={{ margin:0, color:"var(--muted)" }}>Capital is channelled to vetted farming cooperatives across Nigeria, supporting regional production and rural income.</p>
               </div>
             </Reveal>
           </div>
@@ -952,9 +942,9 @@ export default function LandingPage() {
                   </div>
                 ))}
                 <div style={{ background:"rgba(16,185,129,.04)", border:"1px solid rgba(16,185,129,.1)", borderRadius:8, padding:".875rem", fontSize:".72rem", color:"rgba(255,255,255,.38)", lineHeight:1.65, margin:"1.75rem 0" }}>
-                  <span style={{ color:"var(--green)", fontWeight:700 }}>NOTE:</span> APY reflects the full {calc.m}-month lockup. Parametric weather insurance covers 100% of principal.
+                  <span style={{ color:"#F59E0B", fontWeight:700 }}>ESTIMATE ONLY:</span> This is a hypothetical projection based on the target rate you entered — not a promise or prediction. Actual returns depend on harvest outcomes and may be lower, zero, or negative. Your capital is at risk.
                 </div>
-                <a href="/register" className="btn btn-p" style={{ width:"100%", padding:"1.05rem", justifyContent:"center" }}>Initialize Deployment →</a>
+                <a href="/signup" className="btn btn-p" style={{ width:"100%", padding:"1.05rem", justifyContent:"center" }}>Initialize Deployment →</a>
               </div>
             </Reveal>
           </div>
@@ -965,31 +955,25 @@ export default function LandingPage() {
       <section className="sec" style={{ borderTop:"1px solid var(--border)" }}>
         <div className="wrap">
           <div style={{ textAlign:"center", marginBottom:"3rem" }}>
-            <div className="eyebrow" style={{ justifyContent:"center" }}><span>◆</span> Investor Stories</div>
-            <h2 className="h2">Trusted by smart capital.</h2>
+            <div className="eyebrow" style={{ justifyContent:"center" }}><span>◆</span> How We Work</div>
+            <h2 className="h2">Built to be transparent.</h2>
+            <p style={{ maxWidth:520, margin:"1rem auto 0", color:"var(--muted)" }}>SmartFarmer is a young platform. Rather than show reviews we can't verify, here's plainly how it works and where the risk sits.</p>
           </div>
           <div className="col3">
             {[
-              { ii:"FK", name:"Folake", role:"Lagos", q:"The algorithmic risk control gave me confidence to deploy a mid-six-figure sum. Yield has outpaced my fixed-income portfolio by 3× with zero correlation to broader markets." },
-              { ii:"M", name:"Muhammed",      role:"Abuja",        q:"Finally, a protocol that touches grass. Real-world asset backing in agriculture is the missing primitive in modern finance. The dashboard transparency is unmatched." },
-              { ii:"AK", name:"Akpan",       role:"Port Harcourt",  q:"Seamless deployment, transparent tracking, predictable maturity cycles. I route 10% of my startup treasury through SmartFarmer to hedge against fiat inflation." },
-               { ii:"JE", name:"Jessica",       role:"Ogun",  q:"Have been looking for a legit platform to invest in agriculture and earn back. Smartfarmer does not only fill this void, but champion my financial life." },
-            ].map(({ ii, name, role, q }, i) => (
-              <Reveal key={name} delay={i * 130}>
+              { t:"Where your money goes", d:"Funds are used to buy real farm inputs — seeds, fertiliser, equipment — for a specific crop cycle you choose. It is not a savings account." },
+              { t:"Where the risk sits",   d:"Weather, pests, and market prices can reduce or wipe out a harvest. If a cycle under-performs, you can lose part or all of your capital. Nothing here is guaranteed or insured." },
+              { t:"What we don't claim",   d:"We are not a licensed bank, we hold no government deposit guarantee, and we don't promise fixed returns. Only invest money you can afford to lose." },
+            ].map(({ t, d }, i) => (
+              <Reveal key={t} delay={i * 130}>
                 <div className="card" style={{ display:"flex", flexDirection:"column", height:"100%" }}
                   onMouseOver={e=>{ e.currentTarget.style.borderColor="rgba(16,185,129,.25)"; e.currentTarget.style.transform="translateY(-4px)"; }}
                   onMouseOut={e=>{ e.currentTarget.style.borderColor="var(--border)"; e.currentTarget.style.transform="none"; }}>
-                  <div style={{ display:"flex", gap:".25rem", marginBottom:"1.1rem" }}>
-                    {[...Array(5)].map((_,j)=><span key={j} style={{ color:"#F59E0B", fontSize:".875rem" }}>★</span>)}
+                  <div style={{ width:40, height:40, borderRadius:10, background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.2)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:"1.1rem" }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--green)" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   </div>
-                  <p style={{ color:"#D0D0D0", fontSize:".92rem", flexGrow:1, marginBottom:"1.5rem", lineHeight:1.7 }}>"{q}"</p>
-                  <div style={{ display:"flex", alignItems:"center", gap:".875rem" }}>
-                    <div style={{ width:42, height:42, borderRadius:"50%", background:"linear-gradient(135deg,#10B981,#059669)", display:"grid", placeItems:"center", fontWeight:800, fontSize:".78rem", color:"#000", flexShrink:0 }}>{ii}</div>
-                    <div>
-                      <div style={{ fontWeight:700, color:"#fff", fontSize:".875rem" }}>{name}</div>
-                      <div style={{ fontSize:".72rem", color:"rgba(255,255,255,.33)" }}>{role}</div>
-                    </div>
-                  </div>
+                  <div className="h3" style={{ marginBottom:".5rem", fontSize:"1rem" }}>{t}</div>
+                  <p style={{ color:"#D0D0D0", fontSize:".9rem", flexGrow:1, lineHeight:1.7, margin:0 }}>{d}</p>
                 </div>
               </Reveal>
             ))}
@@ -1036,13 +1020,13 @@ export default function LandingPage() {
         <div className="wrap" style={{ textAlign:"center" }}>
           <Reveal>
             <div className="badge" style={{ margin:"0 auto 1.5rem", width:"fit-content" }}>
-              <span className="dot-g"/>Limited slots available this season
+              <span className="dot-g"/>New crop cycles open regularly
             </div>
             <h2 className="h2" style={{ maxWidth:640, margin:"0 auto 1.1rem" }}>Ready to put your capital to work in Nigerian soil?</h2>
-            <p style={{ maxWidth:440, margin:"0 auto 2.25rem", color:"var(--muted)" }}>Join 2,400+ investors earning predictable, asset-backed returns from agriculture. Get started in under 5 minutes.</p>
+            <p style={{ maxWidth:480, margin:"0 auto 2.25rem", color:"var(--muted)" }}>Invest in real Nigerian agriculture from ₦100,000. Returns are not guaranteed and your capital is at risk — please read our Risk Disclosure first.</p>
             <div style={{ display:"flex", gap:".875rem", justifyContent:"center", flexWrap:"wrap" }}>
-              <a href="/register" className="btn btn-p" style={{ padding:"1rem 2rem" }}>Deploy Capital Today</a>
-              <a href="/docs"     className="btn btn-s" style={{ padding:"1rem 2rem" }}>Read the Docs</a>
+              <a href="/signup" className="btn btn-p" style={{ padding:"1rem 2rem" }}>Create an Account</a>
+              <a href="/risk"   className="btn btn-s" style={{ padding:"1rem 2rem" }}>Read Risk Disclosure</a>
             </div>
           </Reveal>
         </div>
@@ -1088,7 +1072,7 @@ export default function LandingPage() {
             </div>
             {[
               { title:"Platform", links:[["How It Works","#how"],["Crop Cycles","#crops"],["Yield Terminal","#estimator"],["Affiliate Program","#affiliate"]] },
-              { title:"Company",  links:[["About Us","/about"],["Blog","/blog"],["Contact","/contact"],["Partner With Us","#affiliate"]] },
+              { title:"Company",  links:[["About Us","/about"],["Contact","/contact"],["Risk Disclosure","/risk"],["Partner With Us","#affiliate"]] },
               { title:"Connect",  links:[["X / Twitter","https://x.com/smartfarmer_ng"],["Instagram","https://www.instagram.com/smartfarmer_ng"],["Telegram","https://t.me/smartfarmerng"],["Email","mailto:support@smartfarmer.ng"]] },
             ].map(({ title, links }) => (
               <div key={title}>
@@ -1104,11 +1088,23 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          {/* Legal + risk line */}
+          <div style={{ borderTop:"1px solid rgba(255,255,255,.06)", paddingTop:"1.5rem", marginBottom:"1.25rem" }}>
+            <p style={{ fontSize:".72rem", color:"rgba(255,255,255,.3)", lineHeight:1.7, maxWidth:820, marginBottom:".9rem" }}>
+              <strong style={{ color:"rgba(255,255,255,.55)" }}>Risk disclosure:</strong> SmartFarmer offers investments in agricultural crop cycles. These are high-risk and returns are not guaranteed. You may lose some or all of your capital. SmartFarmer is not a bank, does not offer any government-backed deposit guarantee, and does not provide financial advice. Only invest money you can afford to lose, and consider seeking independent advice.
+            </p>
+            <div style={{ display:"flex", gap:"1.25rem", flexWrap:"wrap", fontSize:".78rem" }}>
+              {[["Privacy Policy","/privacy"],["Terms of Service","/terms"],["Risk Disclosure","/risk"],["About","/about"],["Contact","/contact"]].map(([l,h])=>(
+                <a key={l} href={h} style={{ color:"rgba(255,255,255,.45)", transition:"color .2s" }}
+                  onMouseOver={e=>e.target.style.color="#fff"} onMouseOut={e=>e.target.style.color="rgba(255,255,255,.45)"}>{l}</a>
+              ))}
+            </div>
+          </div>
           <div className="ft-btm" style={{ borderTop:"1px solid rgba(255,255,255,.06)", paddingTop:"1.5rem", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:".75rem", fontSize:".75rem", color:"rgba(255,255,255,.22)" }}>
-            <span>© {new Date().getFullYear()} SmartFarmer OS. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} SmartFarmer. All rights reserved.</span>
             <span style={{ display:"flex", alignItems:"center", gap:".45rem" }}>
               <span style={{ width:6, height:6, background:"var(--green)", borderRadius:"50%", boxShadow:"0 0 6px var(--green)" }}/>
-              All Systems Operational · Lagos, Nigeria
+              Lagos, Nigeria
             </span>
           </div>
         </div>
@@ -1118,7 +1114,7 @@ export default function LandingPage() {
       <div className="mob-bar" style={{ position:"fixed", bottom:0, left:0, right:0, padding:".875rem 1rem", background:"rgba(5,5,5,.97)", backdropFilter:"blur(16px)", borderTop:"1px solid rgba(255,255,255,.07)", transform:sticky?"translateY(0)":"translateY(100%)", transition:"transform .3s cubic-bezier(.4,0,.2,1)", zIndex:90, flexDirection:"column" }}>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:".75rem" }}>
           <a href="/login"    className="btn btn-s" style={{ padding:".75rem" }}>Log in</a>
-          <a href="/register" className="btn btn-p" style={{ padding:".75rem" }}>Deploy Capital</a>
+          <a href="/signup" className="btn btn-p" style={{ padding:".75rem" }}>Deploy Capital</a>
         </div>
       </div>
 

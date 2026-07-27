@@ -19,6 +19,13 @@ import PaymentCallback from "./components/PaymentCallback";
 import WithdrawalPage from "./components/WithdrawalPage";
 import LoadingSpinner from "./components/LoadingSpinner"; // Import the new spinner
 import LandingPage from "./components/LandingPage";
+import {
+  PrivacyPolicy,
+  Terms,
+  RiskDisclosure,
+  About,
+  Contact,
+} from "./components/LegalPages";
 
 // Import Firebase services
 import { auth, db } from "./firebase";
@@ -77,12 +84,24 @@ function App() {
     return <LoadingSpinner message="Loading Application..." />;
   }
 
+  // Public legal/company pages — reachable whether signed in or not.
+  const legalRoutes = (
+    <>
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/risk" element={<RiskDisclosure />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
+    </>
+  );
+
   return (
     <BrowserRouter>
       <div className={`App ${theme}`}>
         <Modal show={show} message={message} type={type} onClose={hideModal} />
         <main className="main-content">
           <Routes>
+            {legalRoutes}
             {currentUser ? (
               <>
                 <Route
